@@ -77,7 +77,7 @@ svg {
 
 .scene__content {
   font-size: clamp(24px, 4vmin, 48px);
-  font-variation-settings: "wght" 50; /* tweak to 0/25/50/75/100 as you like */
+  font-variation-settings: "wght" 0; /* tweak to 0/25/50/75/100 as you like */
   letter-spacing: .06em;
   text-transform: uppercase;
 }

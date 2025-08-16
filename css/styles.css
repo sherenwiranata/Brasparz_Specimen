@@ -1,0 +1,83 @@
+@font-face{
+  font-family: "BrasparzWeb";  /* unique name just for the web */
+  src:url("../assets/fonts/CLM-BrasparzVF.woff2") format("woff2");
+  font-weight: 100 900;    /* CSS selection range (safe) */
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Utility classes for Brasparz weights */
+.weight-0   { font-variation-settings: "wght" 0; }
+.weight-25  { font-variation-settings: "wght" 25; }
+.weight-50  { font-variation-settings: "wght" 50; }
+.weight-75  { font-variation-settings: "wght" 75; }
+.weight-100 { font-variation-settings: "wght" 100; }
+
+/* Reset browser default bold on headings and prevent fake bolding */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 100;
+  font-synthesis-weight: none;
+  font-family: "BrasparzWeb", sans-serif;
+}
+
+/* ===== Base styles ===== */
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #ffffff;
+  color: #000;
+  overflow: hidden;
+  font-family: "BrasparzWeb";
+}
+
+.wrap {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+
+svg {
+  width: clamp(1000px, 70vw, 3000px);
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* each stencil block (path) */
+.block {
+  transform-box: fill-box;
+  transform-origin: center;
+  fill: currentColor;
+  color: #000; /* theme color */
+  transition: transform .12s cubic-bezier(.2,.8,.2,1);
+  will-change: transform;
+}
+
+/***************** Scene overlays (fade in/out)****************/
+.scene {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .8s ease;
+}
+
+.scene.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scene--black {
+  background: #000;
+  color: #fff;
+}
+
+.scene__content {
+  font-size: clamp(24px, 4vmin, 48px);
+  font-variation-settings: "wght" 50; /* tweak to 0/25/50/75/100 as you like */
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}

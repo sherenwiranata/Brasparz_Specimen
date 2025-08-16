@@ -1,180 +1,33 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Brasparz — Stencil Blocks Interaction</title>
-<style>
-  html,body{height:100%;margin:0;background:#ffffff;color:#000;overflow:hidden}
-  .wrap{height:100%;display:grid;place-items:center; overflow:visible;}
-svg{width:min(92vw,1400px);height:auto;display:block; overflow:visible;}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Brasparz — Stencil Blocks Interaction</title>
 
-  /* each stencil block (path) */
-  .block{
-    transform-box: fill-box;
-    transform-origin: center;
-    fill: currentColor;
-    color:#000;                   /* change this to theme */
-    transition: transform .12s cubic-bezier(.2,.8,.2,1);
-    will-change: transform;
-  }
+  <!-- Preload a primary font weight for faster first paint -->
+  <!-- If using static weights, preload Regular; if variable, preload the variable file -->
+  <link rel="preload" href="assets/fonts/CLM-BrasparzVF.woff2" as="font" type="font/woff2" crossorigin>
 
-  .hint{
-    position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
-    font: 600 12px/1 ui-sans-serif, system-ui, Segoe UI, Roboto, "Helvetica Neue", Arial;
-    letter-spacing:.14em; text-transform:uppercase; opacity:.55; pointer-events:none;
-  }
-  
-</style>
+  <!-- Base CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
 </head>
 <body>
-<div class="wrap" id="wrap"></div>
-<div class="hint">Hover to repel • Click to collapse</div>
+  <div class="wrap" id="wrap"></div>
 
-<script>
-(async () => {
-  // ---- 1) Load and inline your SVG ----
-  // If your filename is different, change 'brasparz.svg' here.
-  const res = await fetch('openingtitle.svg');
-  const svgText = await res.text();
-  const wrap = document.getElementById('wrap');
-  wrap.innerHTML = svgText;
-  const svg = wrap.querySelector('svg');
+  <!-- Scene overlays -->
+<div id="scene-city" class="scene">
+  <div class="scene__content weight-0">Building a new Deco City</div>
+</div>
 
-  (function padViewBox(pad = 240){
-  const vb = svg.viewBox.baseVal;              // needs a real viewBox on export
-  const x  = vb.x - pad, y = vb.y - pad;
-  const w  = vb.width  + pad*2, h = vb.height + pad*2;
-  svg.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
-})();
+<div id="scene-black" class="scene scene--black">
+  <div class="scene__content weight-0"> </div>
+</div>
 
-  // Ensure we have a viewBox (export with "Responsive: unchecked" in Illustrator)
-  if (!svg.viewBox || !svg.viewBox.baseVal || svg.viewBox.baseVal.width === 0){
-    console.warn('SVG missing viewBox. Re-export with a proper viewBox for reliable physics.');
-  }
-
-  // ---- 2) Select blocks ----
-  // Recommended: name each stencil piece block-1, block-2, …
-  let blocks = Array.from(svg.querySelectorAll('[id^="block-"]'));
-  if (blocks.length === 0) {
-    // Fallback: target all paths (only if you didn't name them)
-    blocks = Array.from(svg.querySelectorAll('path'));
-  }
-  blocks.forEach(el => el.classList.add('block'));
-
-  // ---- 3) Physics state per block ----
-  const S = blocks.map(() => ({x:0,y:0,vx:0,vy:0}));
-  let mode = 'repel'; // 'repel' -> 'fall'
-  let raf;
-
-  // Tunables (adjust the "feel")
-  const RADIUS   = 170;  // px influence radius for repel
-  const STRENGTH = 60;   // repel strength
-  const SPRING   = 0.10; // pull back to origin
-  const DAMP     = 0.55; // velocity damping
-  const MAX      = 65;   // clamp displacement (repel mode)
-
-  const GRAVITY  = 0.9;  // downward accel (fall mode)
-  const BOUNCE   = 0.32; // energy preserved on bounce
-  const FRICTION = 0.86; // horizontal friction on bounce
-
-  // Floor at ~70% of the SVG viewBox height (tweak for your artwork)
-  const vb = svg.viewBox?.baseVal;
-  const viewHeight = vb ? vb.height : 300;
-  const floor = viewHeight * 0.72;
-
-  // ---- 4) Mouse / touch tracking ----
-  let mouse={x:-9999,y:-9999,active:false};
-  const onMove = e => {
-    mouse.active = true;
-    const t = e.touches ? e.touches[0] : e;
-    mouse.x = t.clientX; mouse.y = t.clientY;
-  };
-  addEventListener('pointermove', onMove, {passive:true});
-  addEventListener('touchmove',   onMove, {passive:true});
-  addEventListener('pointerleave', () => mouse.active=false, {passive:true});
-  addEventListener('touchend',     () => mouse.active=false, {passive:true});
-
-  // helper: screen-space center of an SVG element
-  function getCenter(el){
-    const b  = el.getBBox();
-    const m  = el.getScreenCTM();
-    const pt = svg.createSVGPoint();
-    pt.x = b.x + b.width/2; pt.y = b.y + b.height/2;
-    const c = pt.matrixTransform(m);
-    return {x:c.x, y:c.y};
-  }
-
-  // ---- 5) Animation loop ----
-  function tick(){
-    if (mode === 'repel'){
-      for (let i=0;i<blocks.length;i++){
-        const el = blocks[i], s = S[i];
-
-        if (mouse.active){
-          const c  = getCenter(el);
-          const dx = c.x - mouse.x;
-          const dy = c.y - mouse.y;
-          const d  = Math.hypot(dx, dy);
-          if (d < RADIUS && d > 0.0001){
-            const f = (1 - d / RADIUS) * STRENGTH;
-            s.vx += (dx / d) * f;   // push away from cursor
-            s.vy += (dy / d) * f;
-          }
-        }
-
-        // spring back to origin + damping
-        s.vx += -s.x * SPRING;
-        s.vy += -s.y * SPRING;
-        s.vx *= DAMP; s.vy *= DAMP;
-
-        // integrate + clamp
-        s.x += s.vx; s.y += s.vy;
-        s.x = Math.max(-MAX, Math.min(MAX, s.x));
-        s.y = Math.max(-MAX, Math.min(MAX, s.y));
-
-        el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
-      }
-    } else if (mode === 'fall'){
-      let resting = true;
-
-      for (let i=0;i<blocks.length;i++){
-        const el = blocks[i], s = S[i];
-
-        // gravity
-        s.vy += GRAVITY;
-        s.x  += s.vx;
-        s.y  += s.vy;
-
-        // bounce on floor (SVG space)
-        if (s.y > floor){
-          s.y  = floor;
-          s.vy *= -BOUNCE;
-          s.vx *= FRICTION;
-        }
-
-        if (Math.abs(s.vy) > 0.25 || Math.abs(s.y - floor) > 0.6) resting = false;
-
-        el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
-      }
-
-      if (resting){
-        // Everything has settled — trigger your next scene here
-        // e.g., fade out SVG or pan a container, etc.
-        // document.body.classList.add('to-blueprint');
-        // or call a function nextScene();
-      }
-    }
-
-    raf = requestAnimationFrame(tick);
-  }
-  raf = requestAnimationFrame(tick);
-
-  // ---- 6) Collapse trigger ----
-  svg.addEventListener('pointerdown', () => { mode='fall'; }, {once:true});
-  setTimeout(() => { if (mode==='repel') mode='fall'; }, 6000); // auto-advance
-
-})();
-</script>
+  <!-- JS (simple non-module setup) -->
+  <script src="js/utilities.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

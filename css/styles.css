@@ -20,7 +20,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: "BrasparzWeb", sans-serif;
 }
 
-/* ===== Base styles ===== */
+/****************===== Base styles =====******************/
 html, body {
   height: 100%;
   margin: 0;
@@ -48,8 +48,6 @@ svg {
 .block {
   transform-box: fill-box;
   transform-origin: center;
-  fill: currentColor;
-  color: #000; /* theme color */
   transition: transform .12s cubic-bezier(.2,.8,.2,1);
   will-change: transform;
 }
@@ -80,4 +78,49 @@ svg {
   font-variation-settings: "wght" 0; /* tweak to 0/25/50/75/100 as you like */
   letter-spacing: .06em;
   text-transform: uppercase;
+}
+
+/**************************** bg colour and Animation *******************************/
+:root{
+  --bg: #f4efe4;
+  --grain-opacity: .20;   /* tweak 0.08–0.25 */
+}
+
+/* base page colour */
+html, body { background: var(--bg); }
+
+/* animated grain overlay */
+body::before{
+  content:"";
+  position: fixed;
+  inset: -40vmax;                 /* overscan so moving doesn’t show edges */
+  z-index: 0;                     /* sits behind your SVG content */
+  pointer-events: none;
+  background-image: url("../assets/img/noisebg.png");
+  background-size: 350px 350px;   /* tile scale */
+  opacity: var(--grain-opacity);
+  mix-blend-mode: multiply;       /* richer with warm bg */
+  animation: grainShift 12s steps(10) infinite;
+}
+
+/* keep your interactive content on top */
+.wrap, .hint, svg, .scene { position: relative; z-index: 1; }
+
+@keyframes grainShift{
+  0%   { transform: translate3d(0,0,0)       rotate(0.2deg)  }
+  10%  { transform: translate3d(-3%, -6%,0)  rotate(0.4deg)  }
+  20%  { transform: translate3d(5%,  -2%,0)  rotate(-0.1deg) }
+  30%  { transform: translate3d(-7%, 3%, 0)  rotate(0.3deg)  }
+  40%  { transform: translate3d(4%,  7%, 0)  rotate(-0.2deg) }
+  50%  { transform: translate3d(0,   4%, 0)  rotate(0.1deg)  }
+  60%  { transform: translate3d(6%, -4%, 0)  rotate(-0.3deg) }
+  70%  { transform: translate3d(-4%, 2%, 0)  rotate(0.2deg)  }
+  80%  { transform: translate3d(3%, -7%, 0)  rotate(-0.2deg) }
+  90%  { transform: translate3d(-2%, 5%, 0)  rotate(0.1deg)  }
+  100% { transform: translate3d(0,0,0)       rotate(0deg)    }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  body::before{ animation: none; opacity: .1; }
 }

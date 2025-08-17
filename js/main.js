@@ -10,6 +10,9 @@ function hideScene(id){ document.getElementById(id)?.classList.remove('is-visibl
   wrap.innerHTML = svgText;
   const svg = wrap.querySelector('svg');
 
+  svg.addEventListener('pointerenter', () => document.body.classList.add('spot-on'));
+svg.addEventListener('pointerleave', () => document.body.classList.remove('spot-on'));
+
   if (!svg || !svg.viewBox || !svg.viewBox.baseVal || svg.viewBox.baseVal.width === 0) {
     console.warn('SVG missing viewBox. Re-export with a proper viewBox for reliable physics.');
   } else {
@@ -19,6 +22,7 @@ function hideScene(id){ document.getElementById(id)?.classList.remove('is-visibl
     }
   }
 
+  
   // ---- Select blocks ----
   let blocks = Array.from(svg.querySelectorAll('[id^="block-"]'));
   if (blocks.length === 0) {
@@ -33,8 +37,8 @@ function hideScene(id){ document.getElementById(id)?.classList.remove('is-visibl
 
   // Tunables
 // ---- Repel feel (hover mode) ----
-    const RADIUS   = 180;  // cursor influence radius
-    const STRENGTH = 60;
+    const RADIUS   = 90;  // cursor influence radius
+    const STRENGTH = 10;
     const SPRING   = 0.12; // a touch snappier pull-back
     const DAMP     = 0.62; // more damping so blocks settle quicker pre-click
     const MAX      = 55;
@@ -57,15 +61,37 @@ function hideScene(id){ document.getElementById(id)?.classList.remove('is-visibl
 
   // ---- Pointer tracking ----
   let mouse = { x: -9999, y: -9999, active: false };
-  const onMove = e => {
-    mouse.active = true;
-    const t = e.touches ? e.touches[0] : e;
-    mouse.x = t.clientX; mouse.y = t.clientY;
-  };
-  addEventListener('pointermove', onMove, { passive: true });
-  addEventListener('touchmove',   onMove, { passive: true });
-  addEventListener('pointerleave', () => mouse.active = false, { passive: true });
-  addEventListener('touchend',     () => mouse.active = false, { passive: true });
+  const root = document.documentElement;
+let rafLight = null;
+
+const onMove = (e) => {
+  mouse.active = true;
+  const t = e.touches ? e.touches[0] : e;
+  mouse.x = t.clientX;
+  mouse.y = t.clientY;
+
+  // Update spotlight CSS vars without spamming layout
+  if (!rafLight) {
+    rafLight = requestAnimationFrame(() => {
+      root.style.setProperty('--mx', mouse.x + 'px');
+      root.style.setProperty('--my', mouse.y + 'px');
+      // Only show the spotlight while in repel mode
+      document.body.classList.toggle('spot-on', mode === 'repel' && mouse.active);
+      rafLight = null;
+    });
+  }
+};
+
+addEventListener('pointermove', onMove, { passive: true });
+addEventListener('touchmove',   onMove, { passive: true });
+addEventListener('pointerleave', () => {
+  mouse.active = false;
+  document.body.classList.remove('spot-on');
+}, { passive: true });
+addEventListener('touchend', () => {
+  mouse.active = false;
+  document.body.classList.remove('spot-on');
+}, { passive: true });
 
   function tick(){
   if (mode === 'repel'){

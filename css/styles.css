@@ -84,6 +84,10 @@ svg {
 :root{
   --bg: #f4efe4;
   --grain-opacity: .20;   /* tweak 0.08–0.25 */
+  
+  /* cursor settings */
+   --mx: 50vw;      /* cursor X default */
+  --my: 50vh;      /* cursor Y default */
 }
 
 /* base page colour */
@@ -124,3 +128,35 @@ body::before{
 @media (prefers-reduced-motion: reduce){
   body::before{ animation: none; opacity: .1; }
 }
+
+
+/********* spotlight **********/
+/* ================= Spotlight (mouse-follow “light”) ================= */
+body::after{
+  content:"";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;               /* never blocks your SVG events */
+  z-index: 2;                         /* above grain & SVG */
+  opacity: 0;                         /* hidden until hover */
+  transition: opacity .20s ease;
+
+  /* spotlight controls (can be tuned from JS or here) */
+  --r: 300px;                         /* light radius */
+  --feather: 50px;                   /* softness */
+
+  background:
+    radial-gradient(circle at var(--mx) var(--my),
+      rgba(0,0,0,0) 0,
+      rgba(0,0,0,0) var(--r),
+      rgba(0,0,0,.70) calc(var(--r) + var(--feather) - 40px),
+      rgba(0,0,0,.75) calc(var(--r) + var(--feather))
+    );
+  mix-blend-mode: multiply;           /* plays nicely with your warm bg */
+}
+
+/* Show spotlight only when hovering the hero area */
+body.spot-on::after{ opacity: 5; }
+
+/* Make sure your scenes still sit on top when visible */
+.scene{ z-index: 5; }

@@ -186,7 +186,48 @@
   document.body.classList.remove('spot-on','spot-fixed');
   spotlightLocked = false;
 
-  // (optional) continue to another scene here:
-  // showScene('scene-black');  // or whatever comes next
+  document.body.classList.remove('spot-on','spot-fixed');
+spotlightLocked = false;
+
+// reveal the site + enable scrolling
+document.body.classList.add('app-on');
+document.documentElement.classList.add('app-on'); // for the html tag too
 }
 })();
+
+
+// ===== UI hookups for specimen page =====
+const root = document.documentElement;
+
+// weight slider
+const wght = document.getElementById('wght');
+const wOut = document.getElementById('wghtVal');
+if (wght && wOut){
+  const upd = () => { root.style.setProperty('--wght', wght.value); wOut.textContent = wght.value; };
+  wght.addEventListener('input', upd);
+  upd();
+}
+
+// tester
+const tIn  = document.getElementById('testerInput');
+const tOut = document.getElementById('testerSample');
+if (tIn && tOut){
+  const sync = () => tOut.textContent = tIn.value;
+  tIn.addEventListener('input', sync);
+  sync();
+}
+
+// scroll-spy for the top nav
+const links = Array.from(document.querySelectorAll('.topnav a'));
+const map = new Map(links.map(a => [a.getAttribute('href'), a]));
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if (e.isIntersecting){
+      links.forEach(l => l.classList.remove('active'));
+      const a = map.get('#'+e.target.id);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+document.querySelectorAll('main .section').forEach(sec => io.observe(sec));
+

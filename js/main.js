@@ -1,8 +1,9 @@
+// js/main.js
 (async () => {
   const wrap = document.getElementById('wrap');
 
   function showScene(id){ document.getElementById(id)?.classList.add('is-visible'); }
-function hideScene(id){ document.getElementById(id)?.classList.remove('is-visible'); }
+  function hideScene(id){ document.getElementById(id)?.classList.remove('is-visible'); }
 
   // ---- Load and inline your SVG ----
   const res = await fetch('assets/svg/openingtitle.svg');
@@ -10,24 +11,26 @@ function hideScene(id){ document.getElementById(id)?.classList.remove('is-visibl
   wrap.innerHTML = svgText;
   const svg = wrap.querySelector('svg');
 
+  // Optional hover toggles for the cursor spotlight (guarded later during credits)
   svg.addEventListener('pointerenter', () => document.body.classList.add('spot-on'));
-svg.addEventListener('pointerleave', () => document.body.classList.remove('spot-on'));
+  svg.addEventListener('pointerleave', () => { if (!spotlightLocked) document.body.classList.remove('spot-on'); });
 
-  if (!svg || !svg.viewBox || !svg.viewBox.baseVal || svg.viewBox.baseVal.width === 0) {
+  // --- Credits overlay (one overlay reused for all lines) ---
+  const credits = document.createElement('div');
+  credits.id = 'scene-credits';
+  credits.className = 'scene';
+  credits.innerHTML = '<div class="scene__content"></div>';
+  document.body.appendChild(credits);
+  const creditsContent = credits.querySelector('.scene__content');
+
+  // ---- Sanity on viewBox ----
+  if (!svg?.viewBox?.baseVal?.width) {
     console.warn('SVG missing viewBox. Re-export with a proper viewBox for reliable physics.');
-  } else {
-    // pad viewBox using our util
-    if (window.UTIL && typeof window.UTIL.padViewBox === 'function') {
-
-    }
   }
 
-  
   // ---- Select blocks ----
   let blocks = Array.from(svg.querySelectorAll('[id^="block-"]'));
-  if (blocks.length === 0) {
-    blocks = Array.from(svg.querySelectorAll('path'));
-  }
+  if (blocks.length === 0) blocks = Array.from(svg.querySelectorAll('path'));
   blocks.forEach(el => el.classList.add('block'));
 
   // ---- Physics state ----
@@ -35,154 +38,155 @@ svg.addEventListener('pointerleave', () => document.body.classList.remove('spot-
   let mode = 'repel';
   let raf;
 
-  // Tunables
-// ---- Repel feel (hover mode) ----
-    const RADIUS   = 90;  // cursor influence radius
-    const STRENGTH = 10;
-    const SPRING   = 0.12; // a touch snappier pull-back
-    const DAMP     = 0.62; // more damping so blocks settle quicker pre-click
-    const MAX      = 55;
+  // helpers / flags
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  let spotlightLocked = false; // prevents onMove from hiding spotlight during credits
 
-    // ---- Fall / Blast feel ----
-    const GRAVITY        = 0.9;  // stronger gravity so they leave frame fast
-    const DRAG_X         = 0.985; // air drag
-    const DRAG_Y         = 0.992;
-    const BOUNCE         = 0.0;  // no bounce in blast
-    const FRICTION       = 0.70; // not really used when BOUNCE=0
+  // ---- Tunables ----
+  // Repel feel (hover mode)
+  const RADIUS   = 90;
+  const STRENGTH = 10;
+  const SPRING   = 0.12;
+  const DAMP     = 0.62;
+  const MAX      = 55;
 
-    // ---- Blast impulse (on click) ----
-    const BLAST_IMPULSE  = 5;   // base explosion force
-    const BLAST_RANDOM   = 20;   // extra randomized kick
-    const BLAST_UP_KICK  = 6;    // slight upward pop
+  // Fall / Blast feel
+  const GRAVITY  = 0.9;
+  const DRAG_X   = 0.985;
+  const DRAG_Y   = 0.992;
+  const BOUNCE   = 0.0;
+  const FRICTION = 0.70;
+
+  // Blast impulse (on click)
+  const BLAST_IMPULSE = 5;
+  const BLAST_RANDOM  = 20;
+  const BLAST_UP_KICK = 6;
 
   const vb = svg.viewBox?.baseVal;
   const viewHeight = vb ? vb.height : 300;
-  const floor = viewHeight * 0.72;
 
-  // ---- Pointer tracking ----
+  // ---- Pointer tracking + spotlight ----
   let mouse = { x: -9999, y: -9999, active: false };
   const root = document.documentElement;
-let rafLight = null;
+  let rafLight = null;
 
-const onMove = (e) => {
-  mouse.active = true;
-  const t = e.touches ? e.touches[0] : e;
-  mouse.x = t.clientX;
-  mouse.y = t.clientY;
+  const onMove = (e) => {
+    mouse.active = true;
+    const t = e.touches ? e.touches[0] : e;
+    mouse.x = t.clientX; mouse.y = t.clientY;
 
-  // Update spotlight CSS vars without spamming layout
-  if (!rafLight) {
-    rafLight = requestAnimationFrame(() => {
-      root.style.setProperty('--mx', mouse.x + 'px');
-      root.style.setProperty('--my', mouse.y + 'px');
-      // Only show the spotlight while in repel mode
-      document.body.classList.toggle('spot-on', mode === 'repel' && mouse.active);
-      rafLight = null;
-    });
-  }
-};
-
-addEventListener('pointermove', onMove, { passive: true });
-addEventListener('touchmove',   onMove, { passive: true });
-addEventListener('pointerleave', () => {
-  mouse.active = false;
-  document.body.classList.remove('spot-on');
-}, { passive: true });
-addEventListener('touchend', () => {
-  mouse.active = false;
-  document.body.classList.remove('spot-on');
-}, { passive: true });
-
-  function tick(){
-  if (mode === 'repel'){
-    for (let i=0;i<blocks.length;i++){
-      const el = blocks[i], s = S[i];
-
-      if (mouse.active){
-        const c  = window.UTIL.getCenter(svg, el);
-        const dx = c.x - mouse.x;
-        const dy = c.y - mouse.y;
-        const d  = Math.hypot(dx, dy);
-        if (d < RADIUS && d > 0.0001){
-          const f = (1 - d / RADIUS) * STRENGTH;
-          s.vx += (dx / d) * f;
-          s.vy += (dy / d) * f;
+    if (!rafLight) {
+      rafLight = requestAnimationFrame(() => {
+        root.style.setProperty('--mx', mouse.x + 'px');
+        root.style.setProperty('--my', mouse.y + 'px');
+        if (!spotlightLocked) {
+          document.body.classList.toggle('spot-on', mode === 'repel' && mouse.active);
         }
+        rafLight = null;
+      });
+    }
+  };
+
+  addEventListener('pointermove', onMove, { passive: true });
+  addEventListener('touchmove',   onMove, { passive: true });
+  addEventListener('pointerleave', () => { mouse.active = false; if (!spotlightLocked) document.body.classList.remove('spot-on'); }, { passive: true });
+  addEventListener('touchend',     () => { mouse.active = false; if (!spotlightLocked) document.body.classList.remove('spot-on'); }, { passive: true });
+
+  // ---- Animation loop ----
+  function tick(){
+    if (mode === 'repel'){
+      for (let i=0;i<blocks.length;i++){
+        const el = blocks[i], s = S[i];
+
+        if (mouse.active){
+          const c  = window.UTIL.getCenter(svg, el);
+          const dx = c.x - mouse.x;
+          const dy = c.y - mouse.y;
+          const d  = Math.hypot(dx, dy);
+          if (d < RADIUS && d > 0.0001){
+            const f = (1 - d / RADIUS) * STRENGTH;
+            s.vx += (dx / d) * f;
+            s.vy += (dy / d) * f;
+          }
+        }
+        // spring + damping (return to origin while in hover mode)
+        s.vx += -s.x * SPRING;
+        s.vy += -s.y * SPRING;
+        s.vx *= DAMP; s.vy *= DAMP;
+
+        // integrate + clamp
+        s.x += s.vx; s.y += s.vy;
+        s.x = Math.max(-MAX, Math.min(MAX, s.x));
+        s.y = Math.max(-MAX, Math.min(MAX, s.y));
+
+        el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
       }
-      // spring + damping (return to origin while in hover mode)
-      s.vx += -s.x * SPRING;
-      s.vy += -s.y * SPRING;
-      s.vx *= DAMP; s.vy *= DAMP;
-
-      // integrate + clamp (don't let hover displacements get too far)
-      s.x += s.vx; s.y += s.vy;
-      s.x = Math.max(-MAX, Math.min(MAX, s.x));
-      s.y = Math.max(-MAX, Math.min(MAX, s.y));
-
-      el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
     }
-  }
-  else if (mode === 'blast'){
-    let allGone = true;
-
-    for (let i=0;i<blocks.length;i++){
-      const el = blocks[i], s = S[i];
-
-      // gravity + air drag
-      s.vy += GRAVITY;
-      s.vx *= DRAG_X; s.vy *= DRAG_Y;
-
-      // integrate (no floor collision; let them leave the frame)
-      s.x += s.vx; s.y += s.vy;
-
-      el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
-
-      // If any piece is still vaguely on-screen, keep animating
-      // (SVG space heuristic: off-screen when y translation is very large)
-      if (s.y < (viewHeight * 1.2)) allGone = false;
+    else if (mode === 'blast'){
+      for (let i=0;i<blocks.length;i++){
+        const el = blocks[i], s = S[i];
+        s.vy += GRAVITY;
+        s.vx *= DRAG_X; s.vy *= DRAG_Y;
+        s.x += s.vx; s.y += s.vy;
+        el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
+      }
     }
-
-    // Optional: once everything is well off-screen, you could auto-advance more
-    // if (allGone) { /* … */ }
+    requestAnimationFrame(tick);
   }
+  requestAnimationFrame(tick); // ✅ only once
 
-  requestAnimationFrame(tick);
-}
-requestAnimationFrame(tick);
-
-// Auto-advance safety (in case user doesn't click)
-setTimeout(() => { if (mode==='repel') { /* simulate a click center */ svg.dispatchEvent(new PointerEvent('pointerdown', {clientX: innerWidth/2, clientY: innerHeight/2})); } }, 6000);
-
-  raf = requestAnimationFrame(tick);
-
-  // ---- Collapse trigger ----
+  // ---- Click to explode only (single handler) ----
   svg.addEventListener('pointerdown', (e) => {
-  // 1) switch to blast mode
-  mode = 'blast';
+    // hide the cursor-follow spotlight
+    document.body.classList.remove('spot-on');
 
-  // 2) compute outward impulse from click point
-  const click = { x: e.clientX, y: e.clientY };
+    mode = 'blast';
 
-  blocks.forEach((el, i) => {
-    const c = window.UTIL.getCenter(svg, el);     // screen-space center
-    let dx = c.x - click.x;
-    let dy = c.y - click.y;
-    const d = Math.hypot(dx, dy) || 1;
-    dx /= d; dy /= d;                             // unit vector
+    // outward impulse from click point
+    const click = { x: e.clientX, y: e.clientY };
+    blocks.forEach((el, i) => {
+      const c = window.UTIL.getCenter(svg, el);
+      let dx = c.x - click.x, dy = c.y - click.y;
+      const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
 
-    const k = BLAST_IMPULSE + Math.random() * BLAST_RANDOM;
-    const s = S[i];
-    s.vx += dx * k + (Math.random() - 0.5) * 4;   // outward + jitter
-    s.vy += dy * k - BLAST_UP_KICK + (Math.random() - 0.5) * 3;
-  });
+      const k = BLAST_IMPULSE + Math.random() * BLAST_RANDOM;
+      const s = S[i];
+      s.vx += dx * k + (Math.random() - 0.5) * 4;
+      s.vy += dy * k - BLAST_UP_KICK + (Math.random() - 0.5) * 3;
+    });
 
-  // 3) trigger scenes on a timeline
-  // Wait a beat for the debris to clear, then show city
-  setTimeout(() => { showScene('scene-city'); }, 600);
+    // start credits after debris begins moving
+    setTimeout(() => { playCredits(); }, 700);
+  }, { once: true });
 
-  // Hold the city message, then fade to black
-  setTimeout(() => { hideScene('scene-city'); showScene('scene-black'); }, 3600);
-}, { once:true });
+  // ---- Credits sequence ----
+  async function playCredits(){
+  // lock & center the spotlight
+  spotlightLocked = true;
+  document.body.classList.add('spot-on','spot-fixed'); // show spotlight centered
 
-  setTimeout(() => { if (mode === 'repel') mode = 'fall'; }, 6000); // auto-advance
+  const lines = [
+  '<span class="title">Building a new Deco City</span>',
+  '<span class="role">Type designer & Type Foundry</span><br><span class="name">Charlie Le Maignan</span>'
+];
+
+  // timings (tweak to taste)
+  const HOLD = 2200;   // how long each line stays visible
+  const GAP  = 1000;    // time between lines (matches your fade-out)
+
+  for (const html of lines){
+    creditsContent.innerHTML = html;
+    credits.classList.add('is-visible');     // fade in (your .scene transition handles it)
+    await sleep(HOLD);
+    credits.classList.remove('is-visible');  // fade out
+    await sleep(GAP);
+  }
+
+  // clear spotlight + overlay
+  document.body.classList.remove('spot-on','spot-fixed');
+  spotlightLocked = false;
+
+  // (optional) continue to another scene here:
+  // showScene('scene-black');  // or whatever comes next
+}
 })();

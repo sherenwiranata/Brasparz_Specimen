@@ -107,8 +107,8 @@ body::before{
   animation: grainShift 12s steps(10) infinite;
 }
 
-/* keep your interactive content on top */
-.wrap, .hint, svg, .scene { position: relative; z-index: 1; }
+.wrap, .hint, svg { position: relative; z-index: 1; }
+
 
 @keyframes grainShift{
   0%   { transform: translate3d(0,0,0)       rotate(0.2deg)  }
@@ -142,21 +142,114 @@ body::after{
   transition: opacity .20s ease;
 
   /* spotlight controls (can be tuned from JS or here) */
-  --r: 300px;                         /* light radius */
+  --r: 250px;                         /* light radius */
   --feather: 50px;                   /* softness */
 
   background:
     radial-gradient(circle at var(--mx) var(--my),
       rgba(0,0,0,0) 0,
       rgba(0,0,0,0) var(--r),
-      rgba(0,0,0,.70) calc(var(--r) + var(--feather) - 40px),
-      rgba(0,0,0,.75) calc(var(--r) + var(--feather))
+      rgba(0,0,0,.75) calc(var(--r) + var(--feather) - 40px),
+      rgba(0,0,0,.80) calc(var(--r) + var(--feather))
     );
   mix-blend-mode: multiply;           /* plays nicely with your warm bg */
 }
 
 /* Show spotlight only when hovering the hero area */
-body.spot-on::after{ opacity: 5; }
+body.spot-on::after{ opacity: 1; }
 
 /* Make sure your scenes still sit on top when visible */
-.scene{ z-index: 5; }
+.scene{ z-index: 6; }
+
+body.spot-fixed::after{
+  --mx: 50vw;
+  --my: 50vh;
+  --r: clamp(200px, 23vw, 500px);   /* bigger “stage” */
+  --feather: clamp(50px, 3.8vw, 60px);
+}
+/* Credits typography overrides */
+#scene-credits .scene__content{
+  text-transform: none;                 /* override your uppercase */
+  letter-spacing:.02em;
+  font-variation-settings: "wght" 25;
+  text-align:center;
+  color:#101010;
+  font-size: clamp(22px, 3.6vmin, 42px);
+}
+#scene-credits .kicker{ font-size:.85em; opacity:.85; display:block; }
+
+/* Credit styling */
+#scene-credits .eyebrow{
+  display:block;
+  font-size:.85em;
+  letter-spacing:.06em;
+  text-transform: uppercase;
+  opacity:.85;
+}
+#scene-credits .name{
+  display:block;
+  font-size:1.05em;
+  margin-top:.25em;
+  font-variation-settings:"wght" 75;
+}
+
+/*********** styling for credits in opening ************/
+:root{
+  /* cross-platform UI sans stack */
+  --ui-sans: Arial, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+             Helvetica, "Noto Sans", "Liberation Sans", sans-serif;
+
+  /* base and per-part sizes */
+  --credits-base:  clamp(28px, 4.6vmin, 60px);
+  --credits-title: 1.2;  /* “Building a new Deco City” */
+  --credits-role:  0.5;  /* “Type designer / Type Foundry” */
+  --credits-name:  1.5;  /* “Charlie Le Maignan” */
+}
+
+/* --- Credits typography (consolidated) --- */
+#scene-credits{ font-synthesis-weight: none; } /* no fake bold anywhere */
+#scene-credits .scene__content{ font-size: var(--credits-base); }
+/* tighten the line spacing in credits */
+#scene-credits .scene__content{ line-height: 1.2; }  /* was default ~1.2 */
+
+/* pull the name closer to the role even with a <br> */
+#scene-credits .scene__content br + .name{
+  display:inline-block;
+  margin-top:-0.12em;   /* tweak: -0.08em … -0.18em */
+  line-height:1;
+}
+
+#scene-credits .role{
+  font-family: var(--ui-sans);
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  opacity: .9;
+  font-size: calc(1em * var(--credits-role));
+}
+
+#scene-credits .name,
+#scene-credits .title{
+  font-family: "BrasparzWeb", sans-serif;
+  letter-spacing: .01em;
+}
+
+#scene-credits .name{
+  font-variation-settings: "wght" 75;
+  font-size: calc(1em * var(--credits-name));
+}
+
+#scene-credits .title{
+  font-variation-settings: "wght" 50;
+  letter-spacing: .02em;
+  font-size: calc(1em * var(--credits-title));
+}
+
+/* Optional size presets you can toggle via JS: credits.classList.add('size-lg') */
+#scene-credits.size-sm .scene__content{ font-size: calc(var(--credits-base) * .85); }
+#scene-credits.size-lg .scene__content{ font-size: calc(var(--credits-base) * 1.25); }
+
+/* Mobile fine-tune (optional) */
+@media (max-width: 480px){
+  :root{ --credits-base: clamp(22px, 5.2vmin, 34px); }
+}

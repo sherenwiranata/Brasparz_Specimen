@@ -196,8 +196,7 @@ body.spot-fixed::after{
 /*********** styling for credits in opening ************/
 :root{
   /* cross-platform UI sans stack */
-  --ui-sans: Arial, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-             Helvetica, "Noto Sans", "Liberation Sans", sans-serif;
+  --ui-sans: Helvetica Neue, Helvetica, Arial;
 
   /* base and per-part sizes */
   --credits-base:  clamp(28px, 4.6vmin, 60px);
@@ -220,8 +219,8 @@ body.spot-fixed::after{
 }
 
 #scene-credits .role{
-  font-family: var(--ui-sans);
-  font-weight: 600;
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--ui-sans), sans-serif;
+  font-weight: 300;
   letter-spacing: .06em;
   text-transform: uppercase;
   opacity: .9;
@@ -239,10 +238,36 @@ body.spot-fixed::after{
   font-size: calc(1em * var(--credits-name));
 }
 
+/* --- Two-line title inside the spotlight (OVERRIDES previous .title) --- */
 #scene-credits .title{
-  font-variation-settings: "wght" 50;
-  letter-spacing: .02em;
-  font-size: calc(1em * var(--credits-title));
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  line-height:1.0;
+  gap:0.08em;                          /* 0.06–0.10em feels best */
+  font-size: calc(var(--r) * 0.155);   /* scales with spotlight radius */
+  transform: translateY(-2px);         /* optical lift in the circle */
+  color:#101010;
+}
+
+/* line 1: lighter, a bit more air */
+#scene-credits .title .line1{
+  font-variation-settings: "wght" 0;   /* <- was 50 */
+  letter-spacing: .015em;
+  font-size: 1em;
+  font-synthesis-weight: none;         /* prevent fake bold/changes */
+  font-size: 1.2em;
+  gap: 0.04em;
+  line-height: 0.3;
+}
+
+/* line 2: hero – bigger + heavier, slightly tighter */
+#scene-credits .title .line2{
+  font-variation-settings: "wght" 78;  /* 72–82 sweet spot */
+  letter-spacing:.003em;               /* 0 to .003em; avoid extra tracking */
+  font-size: 3.5em;
+  margin-top: -0.02em;
 }
 
 /* Optional size presets you can toggle via JS: credits.classList.add('size-lg') */

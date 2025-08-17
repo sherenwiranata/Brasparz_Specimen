@@ -166,8 +166,8 @@
   document.body.classList.add('spot-on','spot-fixed'); // show spotlight centered
 
   const lines = [
-  '<span class="title">Building a new Deco City</span>',
-  '<span class="role">Type designer & Type Foundry</span><br><span class="name">Charlie Le Maignan</span>'
+  '<span class="role">Type designer & Type Foundry</span><br><span class="name">Charlie Le Maignan</span>',
+  '<span class="title"><span class="line1">Building a New</span><span class="line2">DECO CITY</span></span>'
 ];
 
   // timings (tweak to taste)

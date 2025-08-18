@@ -161,42 +161,42 @@
 
   // ---- Credits sequence ----
   async function playCredits(){
-  // lock & center the spotlight
-  spotlightLocked = true;
-  document.body.classList.add('spot-on','spot-fixed'); // show spotlight centered
+    // lock & center the spotlight
+    spotlightLocked = true;
+    document.body.classList.add('spot-on','spot-fixed'); // show spotlight centered
 
-  const lines = [
-  '<span class="role">Type designer & Type Foundry</span><br><span class="name">Charlie Le Maignan</span>',
-  '<span class="title"><span class="line1">Building a New</span><span class="line2">DECO CITY</span></span>'
-];
+    const lines = [
+      '<span class="role">Type designer & Type Foundry</span><br><span class="name">Charlie Le Maignan</span>',
+      '<span class="title"><span class="line1">INTRODUCING</span><span class="line2">DECO CITY</span></span>'
+    ];
 
-  // timings (tweak to taste)
-  const HOLD = 2200;   // how long each line stays visible
-  const GAP  = 1000;    // time between lines (matches your fade-out)
+    // timings (tweak to taste)
+    const HOLD = 2200;   // how long each line stays visible
+    const GAP  = 1000;   // time between lines (matches your fade-out)
 
-  for (const html of lines){
-    creditsContent.innerHTML = html;
-    credits.classList.add('is-visible');     // fade in (your .scene transition handles it)
-    await sleep(HOLD);
-    credits.classList.remove('is-visible');  // fade out
-    await sleep(GAP);
+    for (const html of lines){
+      creditsContent.innerHTML = html;
+      credits.classList.add('is-visible');     // fade in (your .scene transition handles it)
+      await sleep(HOLD);
+      credits.classList.remove('is-visible');  // fade out
+      await sleep(GAP);
+    }
+
+    // clear spotlight + overlay
+    document.body.classList.remove('spot-on','spot-fixed');
+    spotlightLocked = false;
+
+    document.body.classList.remove('spot-on','spot-fixed');
+    spotlightLocked = false;
+
+    // reveal the site + enable scrolling
+    document.body.classList.add('app-on');
+    document.documentElement.classList.add('app-on'); // for the html tag too
   }
-
-  // clear spotlight + overlay
-  document.body.classList.remove('spot-on','spot-fixed');
-  spotlightLocked = false;
-
-  document.body.classList.remove('spot-on','spot-fixed');
-spotlightLocked = false;
-
-// reveal the site + enable scrolling
-document.body.classList.add('app-on');
-document.documentElement.classList.add('app-on'); // for the html tag too
-}
 })();
 
 
-// ===== UI hookups for specimen page =====
+// ********************************* UI hookups for specimen page *****************************
 const root = document.documentElement;
 
 // weight slider
@@ -230,4 +230,3 @@ const io = new IntersectionObserver((entries)=>{
   });
 }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
 document.querySelectorAll('main .section').forEach(sec => io.observe(sec));
-

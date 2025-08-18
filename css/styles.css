@@ -35,7 +35,7 @@ h1,h2,h3,h4,h5,h6{
   --mx:50vw;   /* cursor X */
   --my:50vh;   /* cursor Y */
   --r:250px;   /* spotlight radius default */
-  --feather:50px;
+  --feather:0px;
 
   /* credits sizing */
   --credits-base:clamp(28px,4.6vmin,60px);
@@ -147,14 +147,14 @@ body::after{
 
   /* spotlight controls (can be tuned from JS or here) */
   --r: 250px;                         /* light radius */
-  --feather: 50px;                   /* softness */
+  --feather: 0px;                   /* softness */
 
   background:
     radial-gradient(circle at var(--mx) var(--my),
       rgba(0,0,0,0) 0,
       rgba(0,0,0,0) var(--r),
-      rgba(0,0,0,.75) calc(var(--r) + var(--feather) - 40px),
-      rgba(0,0,0,.80) calc(var(--r) + var(--feather))
+      rgba(0,0,0,.90) calc(var(--r) + var(--feather) - 40px),
+      rgba(0,0,0,.90) calc(var(--r) + var(--feather))
     );
   mix-blend-mode: multiply;           /* plays nicely with your warm bg */
 }
@@ -169,7 +169,7 @@ body.spot-fixed::after{
   --mx: 50vw;
   --my: 50vh;
   --r: clamp(200px, 23vw, 500px);   /* bigger “stage” */
-  --feather: clamp(50px, 3.8vw, 60px);
+  --feather: 0px;
 }
 /* Credits typography overrides */
 #scene-credits .scene__content{
@@ -204,9 +204,9 @@ body.spot-fixed::after{
 
   /* base and per-part sizes */
   --credits-base:  clamp(28px, 4.6vmin, 60px);
-  --credits-title: 1.2;  /* “Building a new Deco City” */
+  --credits-title: 1.8;  /* “Building a new Deco City” */
   --credits-role:  0.5;  /* “Type designer / Type Foundry” */
-  --credits-name:  1.5;  /* “Charlie Le Maignan” */
+  --credits-name:  2.5;  /* “Charlie Le Maignan” */
 }
 
 /* --- Credits typography (consolidated) --- */
@@ -218,8 +218,7 @@ body.spot-fixed::after{
 /* pull the name closer to the role even with a <br> */
 #scene-credits .scene__content br + .name{
   display:inline-block;
-  margin-top:-0.12em;   /* tweak: -0.08em … -0.18em */
-  line-height:1;
+  line-height:0.75;
 }
 
 #scene-credits .role{
@@ -248,8 +247,6 @@ body.spot-fixed::after{
   flex-direction:column;
   align-items:center;
   text-align:center;
-  line-height:1.0;
-  gap:0.08em;                          /* 0.06–0.10em feels best */
   font-size: calc(var(--r) * 0.155);   /* scales with spotlight radius */
   transform: translateY(-2px);         /* optical lift in the circle */
   color:#101010;
@@ -257,21 +254,20 @@ body.spot-fixed::after{
 
 /* line 1: lighter, a bit more air */
 #scene-credits .title .line1{
-  font-variation-settings: "wght" 0;   /* <- was 50 */
+  font-weight: 200;
   letter-spacing: .015em;
   font-size: 1em;
   font-synthesis-weight: none;         /* prevent fake bold/changes */
-  font-size: 1.2em;
-  gap: 0.04em;
-  line-height: 0.3;
+  font-size: 0.5em;
+  line-height: 1.3;
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--ui-sans), sans-serif;
 }
 
 /* line 2: hero – bigger + heavier, slightly tighter */
 #scene-credits .title .line2{
-  font-variation-settings: "wght" 78;  /* 72–82 sweet spot */
+  font-variation-settings: "wght" 75;
   letter-spacing:.003em;               /* 0 to .003em; avoid extra tracking */
   font-size: 3.5em;
-  margin-top: -0.02em;
 }
 
 /* Optional size presets you can toggle via JS: credits.classList.add('size-lg') */

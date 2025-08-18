@@ -290,6 +290,20 @@ body.spot-fixed::after{
 html, body { overflow: hidden; }
 html.app-on, body.app-on { overflow: auto; }
 
+/* Landing hero image that sits above the first content section */
+.landing-hero {
+  display: flex;
+  justify-content: center; /* horizontal center */
+  align-items: center;     /* vertical center */
+}
+
+.landing-hero img{
+  display: block;
+  width: 98%;
+  height: auto;
+  max-width: none;                /* let it span edge-to-edge */
+}
+
 /* the actual page wrapper should sit above the grain */
 .site { position: relative; z-index: 3; }
 

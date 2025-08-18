@@ -168,7 +168,7 @@ body.spot-on::after{ opacity: 1; }
 body.spot-fixed::after{
   --mx: 50vw;
   --my: 50vh;
-  --r: clamp(200px, 23vw, 500px);   /* bigger “stage” */
+  --r: clamp(200px, 25vw, 500px);   /* bigger “stage” */
   --feather: 0px;
 }
 /* Credits typography overrides */
@@ -206,7 +206,7 @@ body.spot-fixed::after{
   --credits-base:  clamp(28px, 4.6vmin, 60px);
   --credits-title: 1.8;  /* “Building a new Deco City” */
   --credits-role:  0.5;  /* “Type designer / Type Foundry” */
-  --credits-name:  2.5;  /* “Charlie Le Maignan” */
+  --credits-name:  3.8;  /* “Charlie Le Maignan” */
 }
 
 /* --- Credits typography (consolidated) --- */
@@ -241,6 +241,10 @@ body.spot-fixed::after{
   font-size: calc(1em * var(--credits-name));
 }
 
+#scene-credits .role + br + .name {
+  color: #0557ad;
+}
+
 /* --- Two-line title inside the spotlight (OVERRIDES previous .title) --- */
 #scene-credits .title{
   display:inline-flex;
@@ -268,6 +272,7 @@ body.spot-fixed::after{
   font-variation-settings: "wght" 75;
   letter-spacing:.003em;               /* 0 to .003em; avoid extra tracking */
   font-size: 3.5em;
+  color: #e8b800;
 }
 
 /* Optional size presets you can toggle via JS: credits.classList.add('size-lg') */

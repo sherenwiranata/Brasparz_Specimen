@@ -51,7 +51,7 @@
   const MAX      = 55;
 
   // Fall / Blast feel
-  const GRAVITY  = 0.9;
+  const GRAVITY  = 0.5;
   const DRAG_X   = 0.985;
   const DRAG_Y   = 0.992;
   const BOUNCE   = 0.0;
@@ -166,7 +166,7 @@
     document.body.classList.add('spot-on','spot-fixed'); // show spotlight centered
 
     const lines = [
-      '<span class="role">Type designer & Type Foundry</span><br><span class="name">Charlie Le Maignan</span>',
+      '<span class="role">Type designer & Type Foundry</span><br><span class="name">Charlie Le<br>Maignan</span>',
       '<span class="title"><span class="line1">INTRODUCING</span><span class="line2">DECO CITY</span></span>'
     ];
 

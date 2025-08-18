@@ -189,6 +189,13 @@
     document.body.classList.remove('spot-on','spot-fixed');
     spotlightLocked = false;
 
+     wrap.innerHTML = `
+    <section class="landing-hero">
+      <img src="assets/img/weblanding.png" alt="Landing" />
+    </section>
+  `;
+
+
     // reveal the site + enable scrolling
     document.body.classList.add('app-on');
     document.documentElement.classList.add('app-on'); // for the html tag too

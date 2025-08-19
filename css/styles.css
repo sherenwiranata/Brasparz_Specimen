@@ -290,25 +290,47 @@ body.spot-fixed::after{
 /* When the real site is shown, allow scrolling */
 html.app-on, body.app-on { overflow: auto; }
 
-/* The hero is at least the visible viewport (minus sticky nav),
-   but can grow taller if the image needs it. */
+/* Landing hero sits in its own blend stack, so grain doesn't tint the whole page */
 .landing-hero{
   position: relative;
+  isolation: isolate;              /* <-- important for mix-blend-mode scoping */
   width: 100%;
-  min-height: calc(100svh - var(--nav-h)); /* svh = stable viewport height */
+  min-height: calc(100svh - var(--nav-h));
+  overflow: hidden;
   background: var(--paper, #f4efe4);
-  overflow: visible;
 }
 
-/* Show ALL pixels of the media, never crop */
-.landing-hero > img,
+/* Video as the base layer */
 .landing-hero > video{
-  display: block;
+  position: relative;
+  z-index: 1;
   width: 100%;
-  height: auto;          /* maintain aspect ratio */
-  object-fit: contain;   /* never crop */
-  margin: 0 auto;        /* center if it’s narrower than the container */
+  height: 100%;
+  object-fit: cover;               /* use 'contain' if you never want cropping */
+  display: block;
+  pointer-events: none;
 }
+
+/* Recycled grain overlay (same asset + animation as your credit scene grain) */
+.landing-hero .grain-overlay{
+  position: absolute;
+  inset: -40vmax;                  /* overscan to avoid edges while animating */
+  z-index: 2;                      /* above video */
+  pointer-events: none;
+  background-image: url("../assets/img/noisebg.png");
+  background-size: 350px 350px;
+  opacity: var(--grain-opacity);   /* you already define --grain-opacity */
+  mix-blend-mode: multiply;        /* same blend as your global grain */
+  animation: grainShift 12s steps(10) infinite;  /* reuse your keyframes */
+}
+
+/* If you want to keep global body grain only for intro, turn it off once app-on */
+body.app-on::before{ display: none; }
+
+@media (prefers-reduced-motion: reduce){
+  .landing-hero .grain-overlay{ animation: none; opacity: .1; }
+}
+
 
 /* Optional: once the site is on, stop centering the #wrap grid */
 body.app-on .wrap{

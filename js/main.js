@@ -190,10 +190,16 @@
     spotlightLocked = false;
 
      wrap.innerHTML = `
-    <section class="landing-hero">
-      <img src="assets/img/weblanding.png" alt="Landing" />
-    </section>
-  `;
+  <section class="landing-hero">
+    <video id="bgvid" autoplay muted loop playsinline></video>
+    <div class="grain-overlay" aria-hidden="true"></div>
+  </section>
+`;
+
+const bgvid = document.getElementById("bgvid");
+bgvid.src = "assets/video/weblanding.mp4";
+bgvid.playbackRate = 0.5; // slow-mo
+
 
 
     // reveal the site + enable scrolling

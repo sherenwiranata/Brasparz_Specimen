@@ -287,46 +287,36 @@ body.spot-fixed::after{
 
 /************************************** web page **************************************/
 /* unlock scroll when the real site is on */
-html, body { overflow: hidden; }
+/* When the real site is shown, allow scrolling */
 html.app-on, body.app-on { overflow: auto; }
 
-/* Put the film grain over the landing image */
+/* The hero is at least the visible viewport (minus sticky nav),
+   but can grow taller if the image needs it. */
 .landing-hero{
-  position: relative;           /* create stacking context for ::before */
-  width:100%;
-  height:100vh;
-  display:grid;
-  place-items:center;
-  background: var(--paper);
-  overflow: hidden;             /* hide overscan from bigger inset */
-}
-
-.landing-hero img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
   position: relative;
-  z-index: 0;                   /* image sits below the grain */
+  width: 100%;
+  min-height: calc(100svh - var(--nav-h)); /* svh = stable viewport height */
+  background: var(--paper, #f4efe4);
+  overflow: visible;
 }
 
-.landing-hero::before{
-  content:"";
-  position:absolute;
-  inset:-40vmax;                /* overscan so motion doesn't expose edges */
-  pointer-events:none;
-  background-image:url("../assets/img/noisebg.png");
-  background-size:350px 350px;
-  opacity:var(--grain-opacity);
-  mix-blend-mode:multiply;
-  animation:grainShift 12s steps(10) infinite;
-  z-index: 1;                   /* grain above the image */
+/* Show ALL pixels of the media, never crop */
+.landing-hero > img,
+.landing-hero > video{
+  display: block;
+  width: 100%;
+  height: auto;          /* maintain aspect ratio */
+  object-fit: contain;   /* never crop */
+  margin: 0 auto;        /* center if it’s narrower than the container */
 }
 
-/* respects your existing keyframes */
-@media (prefers-reduced-motion:reduce){
-  .landing-hero::before{ animation:none; opacity:.1; }
+/* Optional: once the site is on, stop centering the #wrap grid */
+body.app-on .wrap{
+  display: block;        /* your .wrap was grid+center for the SVG intro */
+  place-items: initial;
+  height: auto;
 }
+
 
 
 /* the actual page wrapper should sit above the grain */

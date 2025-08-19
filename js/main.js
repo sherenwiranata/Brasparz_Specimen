@@ -199,8 +199,19 @@
     // reveal the site + enable scrolling
     document.body.classList.add('app-on');
     document.documentElement.classList.add('app-on'); // for the html tag too
+    const nav = document.getElementById('topnav');
+function setNavH(){
+  const h = nav ? nav.getBoundingClientRect().height : 0;
+  document.documentElement.style.setProperty('--nav-h', `${h}px`);
+}
+setNavH();
+addEventListener('resize', setNavH);
+new ResizeObserver(setNavH).observe(nav);
+
   }
 })();
+
+
 
 
 // ********************************* UI hookups for specimen page *****************************

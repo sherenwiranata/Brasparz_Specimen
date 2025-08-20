@@ -386,31 +386,61 @@ body:not(.app-on) .topnav { display: none; }
 
 /*==========================================================================================================================
 /* Sections */
-.section{ padding: clamp(48px, 10vw, 120px) 0; background: var(--paper); }
-.section.hero{ background: #f4efe4; color:#fff; }
-.container{ max-width: min(1200px, 92vw); margin: 0 auto; }
-
-.logo-lockup{
-  font-family: "BrasparzWeb", sans-serif;
-  font-variation-settings:"wght" 75;
-  font-size: clamp(40px, 10vw, 120px);
-  letter-spacing: .02em;
-  margin: 0 0 .5em;
+/* ===== Overview grid (3 col like the reference) ===== */
+.overview-grid{
+  display: grid;
+  gap: clamp(16px, 3vw, 36px);
+  grid-template-columns: 1fr;           /* mobile default */
+  border-top: 2px solid rgba(0,0,0,.15); /* subtle rule like the ref */
+  padding-top: clamp(16px, 3vw, 28px);
 }
 
-.lede{
-  font-family: var(--ui-sans, system-ui, sans-serif);
-  font-size: clamp(20px, 2.6vw, 44px);
-  line-height: 1.15;
-  margin: 0 0 1em;
+/* tablet: 2 columns */
+@media (min-width: 720px){
+  .overview-grid{ grid-template-columns: 1fr 1fr; }
 }
-.meta{
-  font-family: var(--ui-sans, system-ui, sans-serif);
-  display: flex; flex-wrap: wrap; gap: 16px 28px;
-  opacity: .9; margin: .5em 0 0;
-  padding: 0; list-style: none;
+
+/* desktop: 3 columns */
+@media (min-width: 1040px){
+  .overview-grid{ grid-template-columns: 1fr 1fr 1fr; }
 }
-.meta strong{ font-weight: 600; }
+
+.overview-grid .col{
+  max-width: 40ch;                       /* keep lines readable */
+}
+
+.overview-grid .eyebrow{
+  margin: 0 0 .5rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: .9rem;
+  letter-spacing: .06em;
+  text-transform: lowercase;             /* matches screenshot vibe */
+  opacity: .9;
+}
+
+.overview-grid p{
+  margin: 0;
+  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(16px, 1.7vw, 18px);
+  line-height: 1.45;
+  font-weight: 300;
+}
+
+.meta.compact{
+  margin-top: .9rem;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: .25rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  opacity: .9;
+  font-weight: 300;
+}
+
+.meta.compact strong{
+  font-weight: 300;
+}
+
 
 /* Weight controls */
 .controls{

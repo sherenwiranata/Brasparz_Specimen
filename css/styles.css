@@ -1,6 +1,4 @@
-/* =========================================================
-   Font & base
-========================================================= */
+/* ========================================================= Font & base ========================================================= */
 @font-face{
   font-family:"BrasparzWeb";
   src:url("../assets/fonts/CLM-BrasparzVF.woff2") format("woff2");
@@ -23,9 +21,8 @@ h1,h2,h3,h4,h5,h6{
   font-family:"BrasparzWeb",sans-serif;
 }
 
-/* =========================================================
-   Tokens
-========================================================= */
+
+/* ========================================================= Tokens ========================================================= */
 :root{
   /* paper + noise */
   --bg:#f4efe4;
@@ -42,9 +39,8 @@ h1,h2,h3,h4,h5,h6{
   --ui-sans:"Helvetica Neue",Helvetica,Arial;
 }
 
-/* =========================================================
-   Base layout
-========================================================= */
+
+/* ========================================================= Base layout ========================================================= */
 html,body{
   height:100%;
   margin:0;
@@ -52,8 +48,11 @@ html,body{
   color:#000;
   overflow:hidden;
   font-family:"BrasparzWeb",system-ui,sans-serif;
+  scrollbar-width: none; 
 }
-
+html::-webkit-scrollbar {
+  display: none;  
+}
 .wrap{
   height:100%;
   display:grid;
@@ -76,9 +75,8 @@ svg{
   will-change:transform;
 }
 
-/* =========================================================
-   Scenes (fade overlays)
-========================================================= */
+
+/* ========================================================= Scenes (fade overlays) ========================================================= */
 .scene{
   position:fixed;
   inset:0;
@@ -99,9 +97,8 @@ svg{
   text-transform:uppercase;
 }
 
-/* =========================================================
-   Subtle moving grain
-========================================================= */
+
+/* ========================================================= Subtle moving grain ========================================================= */
 body::before{
   content:"";
   position:fixed;
@@ -134,8 +131,8 @@ body::before{
   body::before{ animation:none; opacity:.1; }
 }
 
-/********* spotlight **********/
-/* ================= Spotlight (mouse-follow “light”) ================= */
+
+/* ========================================= Spotlight (mouse-follow “light”) ================================= */
 body::after{
   content:"";
   position: fixed;
@@ -197,7 +194,7 @@ body.spot-fixed::after{
   font-variation-settings:"wght" 75;
 }
 
-/*********** styling for credits in opening ************/
+/*=========================================== styling for credits in opening =====================================*/
 :root{
   /* cross-platform UI sans stack */
   --ui-sans: Helvetica Neue, Helvetica, Arial;
@@ -285,7 +282,7 @@ body.spot-fixed::after{
 }
 
 
-/************************************** web page **************************************/
+/*============================================ web page ================================================*/
 /* unlock scroll when the real site is on */
 /* When the real site is shown, allow scrolling */
 html.app-on, body.app-on { overflow: auto; }
@@ -347,42 +344,46 @@ body.app-on .wrap{
 /* (optional) hide navbar too until app-on */
 body:not(.app-on) .topnav { display: none; }
 
-/* Colors/Typography tokens */
-:root{
-  --paper: var(--bg);
-  --ink:   #0e1e28;     /* deep blue/ink for nav lines/text */
-}
-
 /* Top Nav */
 .topnav{
-  position: sticky; top:0; z-index:7;
-  background: rgba(244,239,228,.9);
-  backdrop-filter: blur(4px);
-  border-block: 2px solid var(--ink);
+  position: sticky; 
+  top: 0; 
+  z-index: 7;
+  background: #2f2c2c;   /* solid red background */
+  border: none;          /* remove black outlines */
+  backdrop-filter: none; /* remove blur */
 }
+
 .topnav__inner{
   max-width: min(1200px, 92vw);
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: clamp(12px, 2.5vw, 36px);
+  gap: clamp(12px, 10.5vw, 36px);
   padding: clamp(10px, 1.2vw, 16px) 0;
 }
+
 .topnav a{
-  color: var(--ink);
+  color: #fff; /* white text */
   text-decoration: none;
-  font-family: var(--ui-sans, system-ui, sans-serif);
-  font-weight: 600;
+   font-family: "Helvetica Neue", Helvetica, Arial, var(--ui-sans), sans-serif;
+  font-weight: 100;
   letter-spacing: .04em;
   justify-self: center;
   padding: .25rem .5rem;
   border-radius: 6px;
 }
+
 .topnav a.active{ text-decoration: underline; }
 
+
+
+
+
+/*==========================================================================================================================
 /* Sections */
 .section{ padding: clamp(48px, 10vw, 120px) 0; background: var(--paper); }
-.section.hero{ background: #111; color:#fff; }
+.section.hero{ background: #f4efe4; color:#fff; }
 .container{ max-width: min(1200px, 92vw); margin: 0 auto; }
 
 .logo-lockup{

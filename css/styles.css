@@ -352,6 +352,7 @@ body:not(.app-on) .topnav { display: none; }
   background: #D4382F;   /* solid red background */
   border: none;          /* remove black outlines */
   backdrop-filter: none; /* remove blur */
+  transform: translateY(0);
 }
 
 .topnav__inner{
@@ -359,26 +360,28 @@ body:not(.app-on) .topnav { display: none; }
   margin: 0 auto;
   display: flex;                /* use flexbox */
   justify-content: center;      /* center links */
-  gap: 16rem;                    /* spacing between items */
-  padding: clamp(5px, 0.8vw, 8px) 0;
+  gap: 15.5rem;                    /* spacing between items */
+  padding: clamp(3px, 0.5vw, 5px) 0;
 }
 
 .topnav a{
   color: #F4EFE4; /* white text */
   text-decoration: none;
    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 400;
+  font-weight: 350;
   letter-spacing: .04em;
   justify-self: center;
   padding: .25rem .5rem;
+   min-width: 80px;
   border-radius: 6px;
   font-size: 1.1rem;
+   transition: font-weight 0.2s ease; /* smooth transition */
 }
 
-.topnav a.active{
-  font-weight: 700;     /* bold on active */
-  text-decoration: none;
-  }
+.topnav a:hover,
+.topnav a.active {
+  font-weight: 650;
+}
 
 
 /*==========================================================================================================================

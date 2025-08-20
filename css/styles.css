@@ -165,7 +165,7 @@ body.spot-on::after{ opacity: 1; }
 body.spot-fixed::after{
   --mx: 50vw;
   --my: 50vh;
-  --r: clamp(200px, 25vw, 500px);   /* bigger “stage” */
+  --r: clamp(200px, 25vw, 450px);   /* bigger “stage” */
   --feather: 0px;
 }
 /* Credits typography overrides */

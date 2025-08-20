@@ -36,7 +36,7 @@ h1,h2,h3,h4,h5,h6{
 
   /* credits sizing */
   --credits-base:clamp(28px,4.6vmin,60px);
-  --ui-sans:"Helvetica Neue",Helvetica,Arial;
+  --ui-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 
@@ -197,7 +197,7 @@ body.spot-fixed::after{
 /*=========================================== styling for credits in opening =====================================*/
 :root{
   /* cross-platform UI sans stack */
-  --ui-sans: Helvetica Neue, Helvetica, Arial;
+  --ui-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   /* base and per-part sizes */
   --credits-base:  clamp(28px, 4.6vmin, 60px);
@@ -219,7 +219,7 @@ body.spot-fixed::after{
 }
 
 #scene-credits .role{
-  font-family: "Helvetica Neue", Helvetica, Arial, var(--ui-sans), sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-weight: 300;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -255,13 +255,13 @@ body.spot-fixed::after{
 
 /* line 1: lighter, a bit more air */
 #scene-credits .title .line1{
-  font-weight: 200;
+  font-weight: 300;
   letter-spacing: .015em;
   font-size: 1em;
   font-synthesis-weight: none;         /* prevent fake bold/changes */
   font-size: 0.5em;
   line-height: 1.3;
-  font-family: "Helvetica Neue", Helvetica, Arial, var(--ui-sans), sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* line 2: hero – bigger + heavier, slightly tighter */
@@ -349,7 +349,7 @@ body:not(.app-on) .topnav { display: none; }
   position: sticky; 
   top: 0; 
   z-index: 7;
-  background: #2f2c2c;   /* solid red background */
+  background: #D4382F;   /* solid red background */
   border: none;          /* remove black outlines */
   backdrop-filter: none; /* remove blur */
 }
@@ -357,27 +357,28 @@ body:not(.app-on) .topnav { display: none; }
 .topnav__inner{
   max-width: min(1200px, 92vw);
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: clamp(12px, 10.5vw, 36px);
-  padding: clamp(10px, 1.2vw, 16px) 0;
+  display: flex;                /* use flexbox */
+  justify-content: center;      /* center links */
+  gap: 16rem;                    /* spacing between items */
+  padding: clamp(5px, 0.8vw, 8px) 0;
 }
 
 .topnav a{
-  color: #fff; /* white text */
+  color: #F4EFE4; /* white text */
   text-decoration: none;
-   font-family: "Helvetica Neue", Helvetica, Arial, var(--ui-sans), sans-serif;
-  font-weight: 100;
+   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
   letter-spacing: .04em;
   justify-self: center;
   padding: .25rem .5rem;
   border-radius: 6px;
+  font-size: 1.1rem;
 }
 
-.topnav a.active{ text-decoration: underline; }
-
-
-
+.topnav a.active{
+  font-weight: 600;     /* bold on active */
+  text-decoration: none;
+  }
 
 
 /*==========================================================================================================================

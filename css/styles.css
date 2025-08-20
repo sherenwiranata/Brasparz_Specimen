@@ -376,7 +376,7 @@ body:not(.app-on) .topnav { display: none; }
 }
 
 .topnav a.active{
-  font-weight: 600;     /* bold on active */
+  font-weight: 700;     /* bold on active */
   text-decoration: none;
   }
 

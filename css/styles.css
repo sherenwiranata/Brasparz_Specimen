@@ -430,7 +430,7 @@ body:not(.app-on) .topnav { display: none; }
 }
 @media (min-width: 2500px) {
   .overview-grid p {
-    font-weight: 150;
+    font-variation-settings: "wght" 150;
   }
 }
 

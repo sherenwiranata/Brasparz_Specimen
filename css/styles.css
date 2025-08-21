@@ -425,7 +425,7 @@ body:not(.app-on) .topnav { display: none; }
   font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(16px, 1.7vw, 18px);
   line-height: 1.45;
-  font-weight: 350;
+  font-weight: 300;
   color: #2F2C2C;
 }
 

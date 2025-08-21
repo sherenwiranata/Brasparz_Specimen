@@ -363,7 +363,7 @@ body:not(.app-on) .topnav { display: none; }
   position: sticky;
   top: 0;
   z-index: 7;
-  background: #D4382F;
+  background: #2F2C2C;
 }
 
 .topnav__inner{
@@ -428,9 +428,9 @@ body:not(.app-on) .topnav { display: none; }
   font-weight: 300;
   color: #2F2C2C;
 }
-@media (min-width: 2500px) {
+@media (min-width: 1280px) {
   .overview-grid p {
-    font-variation-settings: "wght" 150;
+    font-variation-settings: "wght" 100;
   }
 }
 

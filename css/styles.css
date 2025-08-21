@@ -322,7 +322,8 @@ html.app-on, body.app-on { overflow: auto; }
 }
 
 /* If you want to keep global body grain only for intro, turn it off once app-on */
-body.app-on::before{ display: none; }
+body.app-on::before{   display: block;             /* was none */
+  opacity: var(--grain-opacity, .20); /* tune if you want */ }
 
 @media (prefers-reduced-motion: reduce){
   .landing-hero .grain-overlay{ animation: none; opacity: .1; }
@@ -341,10 +342,23 @@ body.app-on .wrap{
 /* the actual page wrapper should sit above the grain */
 .site { position: relative; z-index: 3; }
 
+
 /* (optional) hide navbar too until app-on */
 body:not(.app-on) .topnav { display: none; }
+/* ==== Global page gutters (one source of truth) ==== */
+:root{
+  --page-max: 1740px;                         /* your content width cap */
+  --page-pad: clamp(20px, 6.5vw, 96px);         /* side padding from the screen */
+}
 
-/* Top Nav */
+/* Reusable container: nav + all sections use this */
+.container,
+.topnav__inner{
+  width: min(var(--page-max), 100% - 2 * var(--page-pad));
+  margin-inline: auto;                        /* centers the line */
+}
+
+/* ===== Top Nav (no more hard-coded gaps/widths) ===== */
 .topnav{
   position: sticky;
   top: 0;
@@ -353,85 +367,57 @@ body:not(.app-on) .topnav { display: none; }
 }
 
 .topnav__inner{
-  max-width: min(1200px, 96vw);
-  margin: 0 auto;
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;                              /* allow wrap on medium screens */
-  gap: clamp(12px, 5vw, 64px);                  /* responsive spacing */
-  padding: clamp(6px, 0.9vw, 10px) 0;
+  align-items: center;
+  justify-content: space-between;             /* distributes links across width */
+  gap: clamp(12px, 3vw, 40px);
+   padding-block: clamp(4px, 0.5vw, 8px);  /* much smaller */
 }
 
 .topnav a{
+  /* prevent hover “jump”: reserve space close to the bold weight */
+  font-weight: 500;                           /* base */
+  font-synthesis-weight: none;
   color: #F4EFE4;
   text-decoration: none;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 350;
   letter-spacing: .04em;
+  line-height: 1;
+  padding: 0;
   border-radius: 6px;
-  padding: .35rem .5rem;
-  font-size: 1.05rem;
-  min-width: auto;                               /* don’t force items wider than needed */
-  transition: font-weight .2s ease;
-}
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
+  /* Option A — equal width tabs that never shift */
+  flex: 1 1 0;                                /* each link takes equal share */
+  text-align: center;
+
+  transition: color .15s ease, background .15s ease;
+}
 .topnav a:hover,
-.topnav a.active { font-weight: 650; }
-
-/* Tighter layout on medium viewports */
-@media (max-width: 1100px){
-  .topnav__inner{ gap: clamp(10px, 3.5vw, 36px); }
-  .topnav a{ font-size: 1rem; }
+.topnav a.active{
+  font-weight: 600;                           /* looks bold, no reflow */
 }
 
-/* Small screens: make it a horizontal scroller instead of wrapping multiple rows */
-@media (max-width: 680px){
-  .topnav__inner{
-    flex-wrap: nowrap;                           /* single row */
-    justify-content: flex-start;
-    overflow-x: auto;                            /* scrollable row */
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-    gap: 24px;
-    padding-inline: 12px;
-  }
-  .topnav__inner::-webkit-scrollbar{ display: none; } /* hide scrollbar on WebKit */
-  .topnav a{ flex: 0 0 auto; }                   /* no shrinking */
+/* ===== Sections use the same container gutters ===== */
+.section{ padding-block: clamp(48px, 10vw, 120px); background: var(--paper); }
+
+/* If it's the first section after the nav */
+.section:first-of-type {
+  padding-top: clamp(16px, 5vw, 43px);
 }
 
 
-/*==========================================================================================================================
-/* Sections */
-/* ===== Overview grid (3 col like the reference) ===== */
+/* Overview 3-col grid stays the same, but sits inside .container */
 .overview-grid{
   display: grid;
+  grid-template-columns: 1fr;
   gap: clamp(16px, 3vw, 36px);
-  grid-template-columns: 1fr;           /* mobile default */
-  border-top: 2px solid rgba(0,0,0,.15); /* subtle rule like the ref */
-  padding-top: clamp(16px, 3vw, 28px);
+  padding-top: 0;
 }
-
-/* tablet: 2 columns */
-@media (min-width: 720px){
-  .overview-grid{ grid-template-columns: 1fr 1fr; }
-}
-
-/* desktop: 3 columns */
-@media (min-width: 1040px){
-  .overview-grid{ grid-template-columns: 1fr 1fr 1fr; }
-}
+@media (min-width: 720px){  .overview-grid{ grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1040px){ .overview-grid{ grid-template-columns: 1fr 1fr 1fr; } }
 
 .overview-grid .col{
-  max-width: 40ch;                       /* keep lines readable */
-}
-
-.overview-grid .eyebrow{
-  margin: 0 0 .5rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: .9rem;
-  letter-spacing: .06em;
-  text-transform: lowercase;             /* matches screenshot vibe */
-  opacity: .9;
+  max-width: 22vw;                       /* keep lines readable */
 }
 
 .overview-grid p{
@@ -439,23 +425,15 @@ body:not(.app-on) .topnav { display: none; }
   font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(16px, 1.7vw, 18px);
   line-height: 1.45;
-  font-weight: 300;
+  font-weight: 350;
+  color: #2F2C2C;
 }
 
-.meta.compact{
-  margin-top: .9rem;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: .25rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  opacity: .9;
-  font-weight: 300;
-}
 
-.meta.compact strong{
-  font-weight: 300;
-}
+
+
+
+
 
 
 /* Weight controls */

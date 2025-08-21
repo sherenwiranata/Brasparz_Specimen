@@ -428,7 +428,11 @@ body:not(.app-on) .topnav { display: none; }
   font-weight: 300;
   color: #2F2C2C;
 }
-
+@media (min-width: 2500px) {
+  .overview-grid p {
+    font-weight: 150;
+  }
+}
 
 
 

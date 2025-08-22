@@ -404,7 +404,7 @@ body:not(.app-on) .topnav { display: none; }
   margin-inline: auto;
   padding-inline: var(--page-pad);        /* gutters included in width */
 
-  aspect-ratio: 16 / 12;
+  aspect-ratio: 16 / 9;
   position: relative;
   isolation: isolate;
   background: var(--bg);
@@ -424,6 +424,7 @@ body:not(.app-on) .topnav { display: none; }
   height: fit-content;
   object-fit: contain;
   display: block;
+   border-radius: inherit;
 }
 
 /* Stack stays the same */
@@ -448,7 +449,7 @@ body:not(.app-on) .topnav { display: none; }
 }
 
 /* On hover, grow the reveal circle; off hover, r=0 so lowercase is fully hidden */
-.alpha-spot:hover{ --r: 12vmin; }
+.alpha-spot:hover{ --r: 15vmin; }
 
 /* (Optional) ensure the container gets the hover, not the images */
 .alpha-spot .alpha { pointer-events: none; }

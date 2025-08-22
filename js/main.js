@@ -221,6 +221,44 @@ new ResizeObserver(setNavH).observe(nav);
 
 
 // ********************************* UI hookups for specimen page *****************************
+// Hook up hover/focus to update the preview weight
+(() => {
+  const root = document.documentElement;         // in case you want globals later
+  const section = document.getElementById('weights');
+  const list = document.getElementById('weightsList');
+
+  function setActive(w){
+    section.style.setProperty('--active-w', w);
+  }
+
+  // Preview on hover/focus; persist on click (nice for touch)
+  list.addEventListener('pointerover', (e) => {
+    const li = e.target.closest('.weight-item');
+    if (!li) return;
+    setActive(li.style.getPropertyValue('--w') || 50);
+  });
+  list.addEventListener('focusin', (e) => {
+    const li = e.target.closest('.weight-item');
+    if (!li) return;
+    setActive(li.style.getPropertyValue('--w') || 50);
+  });
+  list.addEventListener('click', (e) => {
+    const li = e.target.closest('.weight-item');
+    if (!li) return;
+    setActive(li.style.getPropertyValue('--w') || 50);
+  });
+
+  // Optional: reset when leaving the list
+  list.addEventListener('pointerout', (e) => {
+    if (!list.contains(e.relatedTarget)) setActive(50);
+  });
+})();
+
+
+
+
+
+
 
 
 // Make the reveal follow the cursor smoothly
@@ -259,6 +297,76 @@ function setSpotRatio(){
 lower.complete ? setSpotRatio() : lower.addEventListener('load', setSpotRatio);
 
 // (keep your existing pointer move code that updates --mx / --my)
+
+
+
+
+
+
+
+(() => {
+  const section = document.getElementById('charset');
+  const right   = document.getElementById('charsetRight');
+  const preview = document.getElementById('glyphPreview');
+
+  // helper to build a group
+  function addGroup({ title, chars, feature }) {
+    const group = document.createElement('div');
+    group.className = 'group';
+    group.innerHTML = `<h4>${title}</h4><div class="grid"></div>`;
+    const grid = group.querySelector('.grid');
+
+    // feature is a CSS token string, e.g. '"ss01" 1'
+    const featToken = feature ? feature : 'normal';
+
+    [...chars].forEach(ch => {
+      const cell = document.createElement('button');
+      cell.className = 'tile';
+      cell.setAttribute('type','button');
+      cell.style.setProperty('--feat', featToken);
+      cell.innerHTML = `<span>${ch}</span>`;
+      cell.addEventListener('pointerenter', () => updatePreview(ch, featToken));
+      cell.addEventListener('focus',        () => updatePreview(ch, featToken));
+      cell.addEventListener('click',        () => updatePreview(ch, featToken)); // good for touch
+      grid.appendChild(cell);
+    });
+
+    right.appendChild(group);
+  }
+
+  function updatePreview(char, featToken){
+    preview.textContent = char;
+    preview.style.fontFeatureSettings = featToken;  // mirrors the tile’s feature
+  }
+
+  // Character strings (edit as you like)
+  const UC   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const LC   = "abcdefghijklmnopqrstuvwxyz";
+  const NUM  = "0123456789";
+  const PUNC = "!?,.;:–—()[]{}'\"/@#$%&*+=<>^~•…";
+
+  // Build groups
+  addGroup({ title: "Uppercase",                   chars: UC });
+  addGroup({ title: "Lowercase",                   chars: LC });
+  addGroup({ title: "Numbers",                     chars: NUM });
+  addGroup({ title: "Punctuation",                 chars: PUNC });
+
+  // Alternates / stylistic sets — duplicate as needed and change the tag
+  // Try "salt" 1, "ss01" 1, "ss02" 1, "cv01" 1 etc. depending on your font
+  addGroup({ title: "Uppercase — Stylistic Set 1", chars: UC, feature: '"ss01" 1' });
+  addGroup({ title: "Lowercase — Stylistic Set 1", chars: LC, feature: '"ss01" 1' });
+
+  // Initial uppercase (if supported by your font)
+  addGroup({ title: "Initial Uppercase (init)",    chars: UC, feature: '"init" 1' });
+  addGroup({ title: "Initial Uppercase — SS1",     chars: UC, feature: '"init" 1, "ss01" 1' });
+
+  // Default preview
+  updatePreview("A", "normal");
+})();
+
+
+
+
 
 // weight slider
 const wght = document.getElementById('wght');

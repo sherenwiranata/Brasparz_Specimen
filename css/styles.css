@@ -342,13 +342,12 @@ body:not(.app-on) .topnav { display: none; }
 }
 
 /* ===== Sections use the same container gutters ===== */
-.section{ padding-block: clamp(48px, 5vw, 80px); background: var(--paper); }
+.section{ padding-block: clamp(30px, 5vw, 70px); background: var(--paper); }
 
 /* If it's the first section after the nav */
 .section:first-of-type {
-  padding-top: clamp(16px, 18vw, 70px);
+  padding-top: clamp(16px, 18vw, 50px);
 }
-
 
 /* Overview 3-col grid stays the same, but sits inside .container */
 /* One knob for the column width (same for all three) */
@@ -369,10 +368,10 @@ body:not(.app-on) .topnav { display: none; }
 }
 .overview-grid p{ font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
   "Helvetica Neue", Arial, sans-serif; 
-  font-size: clamp(8px, 1.6vw, 16px); 
+  font-size: clamp(8px, 1.6vw, 18px); 
   line-height: 1.45; 
   font-weight: 400; 
-  color: #191818; 
+  color: #191818;
 }
 
 /* ↓ Responsive fallbacks: 2 cols, then 1 col */
@@ -390,6 +389,105 @@ body:not(.app-on) .topnav { display: none; }
 
 /* No per-column max-widths now — let tracks control width */
 .overview-grid .col{ max-width: none; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+:root{
+  --page-max: 1740px;
+  --page-pad: clamp(20px, 6.5vw, 96px);
+    --tile-radius: clamp(12px, 1.4vw, 28px);
+}
+
+/* Wrapper: handles gutters + max width */
+.weights-block{
+  box-sizing: border-box;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--page-pad);
+}
+
+/* Section layout */
+#weights{
+  --active-w: 50;                 /* default preview weight */
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, 0.9fr);
+  gap: clamp(16px, 4vw, 48px);
+  align-items: stretch;
+}
+
+/* Left column */
+.weights__heading{
+  margin: 0 0 .5rem 0;
+  font: inherit;
+  opacity: .7;
+}
+
+.weights__list{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .5rem;
+  font-size: clamp(15px, 10vw, 120px);
+  color: #2F2C2C;
+}
+
+/* Base */
+.weight-item button{
+  all: unset;
+  cursor: pointer;
+  display: block;
+  padding: .35rem .25rem;
+  line-height: 1;
+  font-family: "BrasparzWeb", system-ui, sans-serif;
+  font-variation-settings: "wght" var(--w);
+  transition: color .15s ease, opacity .15s ease;   /* ← no transform */
+}
+
+/* Hover/focus: no translate; just color */
+.weight-item button:hover,
+.weight-item button:focus-visible{
+  color: #E8B800;      /* pick your accent */
+  opacity: 1;
+  outline: none;
+  transform: none;     /* kills the little nudge */
+}
+
+/* Right column: big glyph preview */
+.weights__right{
+  background-color: #E8B800;          /* your red */
+  display: grid;
+  place-items: center;
+   min-height: clamp(200px, 22vmin, 420px);
+  border-radius: var(--tile-radius);  /* ← round it */
+  overflow: hidden;                   /* keeps content clipped to radius */
+}
+
+.glyph{
+  font-family: "BrasparzWeb", system-ui, sans-serif;
+  font-variation-settings: "wght" var(--active-w);
+  font-feature-settings: "ss01" 1;   /* try ss01 first */
+    font-size: clamp(12rem, 45vw, 38rem);
+  color: #2F2C2C;
+}
+/* Responsive: stack on small screens */
+@media (max-width: 900px){
+  #weights{ grid-template-columns: 1fr; }
+  .weights__right{ min-height: clamp(240px, 55vmin, 520px); }
+}
+
+
+
 
 
 
@@ -461,6 +559,172 @@ body:not(.app-on) .topnav { display: none; }
 
 
 
+
+
+
+
+
+
+
+/* ---- layout ---- */
+.charset{
+  display: grid;
+  grid-template-columns: minmax(280px, 1.1fr) 1.4fr;
+  gap: clamp(16px, 4vw, 48px);
+  align-items: start;
+}
+@media (max-width: 900px){
+  .charset{ grid-template-columns: 1fr; }
+}
+
+/* left: big preview with guides */
+.specimen-box{
+  position: relative;
+  aspect-ratio: 4 / 3;            /* nice proportion */
+  background: #f0f0ea;
+  border: 1px solid #cfcfc4;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.specimen-guides{
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(#cfcfc4 0 0) top 25%/100% 1px no-repeat,
+    linear-gradient(#cfcfc4 0 0) center/100% 1px no-repeat,
+    linear-gradient(#cfcfc4 0 0) bottom 25%/100% 1px no-repeat;
+  pointer-events: none;
+  opacity: .6;
+}
+.specimen-glyph{
+  font-family: "BrasparzWeb", system-ui, sans-serif;
+  font-variation-settings: "wght" var(--wght, 50);
+  /* Enable alt sets only if you want a default look; JS will override */
+  /* font-feature-settings: "ss01" 1; */
+  font-size: clamp(7rem, 20vw, 28rem);
+  line-height: 1;
+  color: #101010;
+}
+.section--glyphs.theme-dark{
+  --glyphs-bg: #141414;
+  --specimen-bg: #1b1b1b;
+  --tile-bg: #1f1f1f;
+  --tile-border: #2a2a2a;
+  --tile-hover-bg: #e8b800;     /* your yellow */
+  --tile-hover-fg: #101010;
+  --glyph-color: #e8b800;
+}
+
+/* right: groups */
+.charset__right{
+  display: grid;
+  gap: clamp(20px, 3vw, 36px);
+}
+
+.group{
+  display: grid;
+  gap: 10px;
+}
+.group h4{
+  margin: 0;
+  font-family: var(--ui-sans, system-ui, sans-serif);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-size: clamp(12px, 1.2vw, 14px);
+  color: #2F2C2C;
+}
+
+/* tile grid */
+.grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
+  gap: 6px;
+  align-items: stretch;
+}
+.tile{
+  --feat: normal;                 /* will be overridden per group/tile */
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  border: 1px solid #cfcfc4;
+  background: #fff;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease, border-color .12s ease;
+  user-select: none;
+}
+.tile:hover,
+.tile:focus-visible{
+  background: #101010;
+  color: #fff;
+  outline: none;
+}
+.tile span{
+  font-family: "BrasparzWeb", system-ui, sans-serif;
+  font-size: clamp(18px, 2.4vw, 28px);
+  line-height: 1;
+  color: inherit;
+  font-variation-settings: "wght" var(--wght, 50);
+  font-feature-settings: var(--feat, normal);
+}
+
+/* small caption under grids (optional) */
+.group .note{
+  font-family: var(--ui-sans, system-ui, sans-serif);
+  opacity: .6;
+  font-size: 12px;
+}
+
+/* ===== Glyphs section theming tokens ===== */
+.section--glyphs{
+  --glyphs-bg: var(--bg);
+  --specimen-bg: #f0f0ea;
+  --tile-bg: #fff;
+  --tile-border: #cfcfc4;
+  --tile-hover-bg: #101010;
+  --tile-hover-fg: #fff;
+  --glyph-color: #101010;
+}
+
+/* set the section band background (overrides .section background) */
+.section.section--glyphs{
+  background: var(--glyphs-bg);
+}
+
+/* ===== Consume the tokens (override hard-coded colors) ===== */
+.section--glyphs .specimen-box{
+  background: var(--specimen-bg);
+  border-color: var(--tile-border);
+}
+.section--glyphs .specimen-guides{
+  background:
+    linear-gradient(var(--tile-border) 0 0) top 25%/100% 1px no-repeat,
+    linear-gradient(var(--tile-border) 0 0) center/100% 1px no-repeat,
+    linear-gradient(var(--tile-border) 0 0) bottom 25%/100% 1px no-repeat;
+}
+.section--glyphs .specimen-glyph{
+  color: var(--glyph-color);
+}
+.section--glyphs .tile{
+  background: var(--tile-bg);
+  border-color: var(--tile-border);
+}
+.section--glyphs .tile:hover,
+.section--glyphs .tile:focus-visible{
+  background: var(--tile-hover-bg);
+  color: var(--tile-hover-fg);
+}
+
+/* ===== Theme variant: dark ===== */
+.section--glyphs.theme-dark{
+  --glyphs-bg: #141414;
+  --specimen-bg: #1b1b1b;
+  --tile-bg: #1f1f1f;
+  --tile-border: #2a2a2a;
+  --tile-hover-bg: #e8b800;   /* your yellow */
+  --tile-hover-fg: #101010;
+  --glyph-color: #e8b800;
+}
 
 
 

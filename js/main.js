@@ -304,10 +304,42 @@ lower.complete ? setSpotRatio() : lower.addEventListener('load', setSpotRatio);
 
 
 
+/* Glyphpanel: sticky preview + hover-to-preview + metrics-driven guides */
 (() => {
   const section = document.getElementById('charset');
   const right   = document.getElementById('charsetRight');
   const preview = document.getElementById('glyphPreview');
+  const leftCol = document.querySelector('.charset__left');
+  const box     = preview ? preview.closest('.specimen-box') : null;
+
+  if (!section || !right || !preview || !leftCol || !box) {
+    console.warn('[glyphpanel] Missing required elements (#charset, #charsetRight, #glyphPreview, .charset__left, .specimen-box).');
+    return;
+  }
+
+  /* -------------------- preview + lock logic -------------------- */
+  const groups = [];                // [{title, chars, feature, startEl, endEl}]
+  let lockedIdx  = 0;
+  let lockedChar = 'A';
+  let lockedFeat = 'normal';
+  let lastScrollY = window.scrollY;
+
+  function updatePreview(char, featToken){
+    preview.textContent = char;
+    preview.style.fontFeatureSettings = featToken || 'normal';
+    // re-sync guide lines to this font/weight/feature
+    if (window.__updateSpecimenGuides) window.__updateSpecimenGuides();
+  }
+
+  function lockToGroup(i){
+    lockedIdx = Math.max(0, Math.min(i, groups.length - 1));
+    const g = groups[lockedIdx];
+    lockedChar = g.chars[0] || '•';
+    lockedFeat = g.feature || 'normal';
+    updatePreview(lockedChar, lockedFeat);
+  }
+
+  function revertToLock(){ updatePreview(lockedChar, lockedFeat); }
 
   // helper to build a group
   function addGroup({ title, chars, feature }) {
@@ -316,53 +348,160 @@ lower.complete ? setSpotRatio() : lower.addEventListener('load', setSpotRatio);
     group.innerHTML = `<h4>${title}</h4><div class="grid"></div>`;
     const grid = group.querySelector('.grid');
 
-    // feature is a CSS token string, e.g. '"ss01" 1'
-    const featToken = feature ? feature : 'normal';
+    const featToken = feature || 'normal';
 
+    // tiles
     [...chars].forEach(ch => {
       const cell = document.createElement('button');
       cell.className = 'tile';
-      cell.setAttribute('type','button');
+      cell.type = 'button';
       cell.style.setProperty('--feat', featToken);
       cell.innerHTML = `<span>${ch}</span>`;
+      // hover/focus preview (temporary)
       cell.addEventListener('pointerenter', () => updatePreview(ch, featToken));
       cell.addEventListener('focus',        () => updatePreview(ch, featToken));
-      cell.addEventListener('click',        () => updatePreview(ch, featToken)); // good for touch
+      cell.addEventListener('click',        () => updatePreview(ch, featToken)); // touch
       grid.appendChild(cell);
     });
 
+    // sentinels: start (for scrolling up), end (for scrolling down)
+    const start = document.createElement('div');
+    start.className = 'group-sentinel start';
+    start.style.height = '1px';
+    start.style.marginTop = '-1px';
+    start.dataset.type = 'start';
+    start.dataset.idx  = groups.length;
+
+    const end = document.createElement('div');
+    end.className = 'group-sentinel end';
+    end.style.height = '1px';
+    end.style.marginBottom = '-1px';
+    end.dataset.type = 'end';
+    end.dataset.idx  = groups.length;
+
+    group.prepend(start);
+    group.appendChild(end);
     right.appendChild(group);
+
+    groups.push({ title, chars, feature: featToken, startEl: start, endEl: end });
   }
 
-  function updatePreview(char, featToken){
-    preview.textContent = char;
-    preview.style.fontFeatureSettings = featToken;  // mirrors the tile’s feature
-  }
-
-  // Character strings (edit as you like)
+  /* -------------------- build your groups -------------------- */
   const UC   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const LC   = "abcdefghijklmnopqrstuvwxyz";
   const NUM  = "0123456789";
   const PUNC = "!?,.;:–—()[]{}'\"/@#$%&*+=<>^~•…";
 
-  // Build groups
   addGroup({ title: "Uppercase",                   chars: UC });
   addGroup({ title: "Lowercase",                   chars: LC });
   addGroup({ title: "Numbers",                     chars: NUM });
   addGroup({ title: "Punctuation",                 chars: PUNC });
 
-  // Alternates / stylistic sets — duplicate as needed and change the tag
-  // Try "salt" 1, "ss01" 1, "ss02" 1, "cv01" 1 etc. depending on your font
+  // Alternates / stylistic sets — change tags to match your font
   addGroup({ title: "Uppercase — Stylistic Set 1", chars: UC, feature: '"ss01" 1' });
   addGroup({ title: "Lowercase — Stylistic Set 1", chars: LC, feature: '"ss01" 1' });
-
-  // Initial uppercase (if supported by your font)
   addGroup({ title: "Initial Uppercase (init)",    chars: UC, feature: '"init" 1' });
   addGroup({ title: "Initial Uppercase — SS1",     chars: UC, feature: '"init" 1, "ss01" 1' });
 
-  // Default preview
-  updatePreview("A", "normal");
+  // Lock to first group initially
+  lockToGroup(0);
+
+  // Revert to locked glyph when leaving the right column
+  right.addEventListener('pointerleave', revertToLock);
+  right.addEventListener('focusout', (e) => { if (!right.contains(e.relatedTarget)) revertToLock(); });
+
+  // IntersectionObserver to advance lock only when a group's END passes the sticky line
+  const stickyTop = parseFloat(getComputedStyle(leftCol).top) || 0;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const idx  = +entry.target.dataset.idx;
+      const type = entry.target.dataset.type;
+      const scrollingDown = window.scrollY > lastScrollY;
+      lastScrollY = window.scrollY;
+
+      if (!entry.isIntersecting) return;
+
+      if (type === 'end' && scrollingDown) {
+        lockToGroup(Math.min(idx + 1, groups.length - 1));
+      }
+      if (type === 'start' && !scrollingDown) {
+        lockToGroup(idx);
+      }
+    });
+  }, {
+    root: null,
+    threshold: 0,
+    rootMargin: `-${stickyTop}px 0px 0px 0px` // trigger at the sticky line
+  });
+
+  groups.forEach(g => { io.observe(g.startEl); io.observe(g.endEl); });
+
+  /* -------------------- metrics-driven guide lines -------------------- */
+  async function fontsReady(){
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch(_) {}
+    }
+  }
+
+  // Canvas measurement for ascent/descent
+  function measureGlyph(text, fontCSS){
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    ctx.font = fontCSS;                 // e.g., "400 200px BrasparzWeb"
+    const m = ctx.measureText(text);
+    return {
+      asc:  m.actualBoundingBoxAscent  || 0,
+      desc: m.actualBoundingBoxDescent || 0
+    };
+  }
+
+  function currentCanvasFont(){
+    const cs = getComputedStyle(preview);
+    // Build "<weight> <size> <family>" for canvas.
+    // Size large for precision; weight maps to 'wght' for most variable fonts.
+    const size   = '200px';
+    const weight = cs.fontWeight || '400';
+    const family = cs.fontFamily || 'sans-serif';
+    return `${weight} ${size} ${family}`;
+  }
+
+  function setGuideVars({ ascTop, xTop, baseTop, descTop }){
+    box.style.setProperty('--asc-y',  `${ascTop.toFixed(2)}%`);
+    box.style.setProperty('--xh-y',   `${xTop.toFixed(2)}%`);
+    box.style.setProperty('--base-y', `${baseTop.toFixed(2)}%`);
+    box.style.setProperty('--desc-y', `${descTop.toFixed(2)}%`);
+  }
+
+  async function syncGuides(){
+    await fontsReady();
+
+    const fontCSS = currentCanvasFont();
+    // Representative glyphs
+    const cap = measureGlyph('H', fontCSS);   // cap height
+    const asc = measureGlyph('h', fontCSS);   // ascender
+    const x   = measureGlyph('x', fontCSS);   // x-height
+    const d   = measureGlyph('p', fontCSS);   // descender
+
+    // total box = tallest ascent to baseline + largest descent
+    const ascent  = Math.max(cap.asc, asc.asc, x.asc);
+    const descent = Math.max(d.desc, 0);
+    const total   = ascent + descent || 1;
+
+    // Convert to percentage positions from top of the box
+    const ascTop  = (ascent - asc.asc) / total * 100;
+    const xTop    = (ascent - x.asc)   / total * 100;
+    const baseTop =  ascent            / total * 100;
+    const descTop = (ascent + d.desc)  / total * 100;
+
+    setGuideVars({ ascTop, xTop, baseTop, descTop });
+  }
+
+  window.addEventListener('load',   syncGuides);
+  window.addEventListener('resize', syncGuides);
+  // expose a hook if you change weight via UI elsewhere
+  window.__updateSpecimenGuides = syncGuides;
 })();
+
 
 
 

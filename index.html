@@ -118,8 +118,17 @@
     <div id="charset" class="charset">
       <div class="charset__left">
         <div class="specimen-box" aria-live="polite">
-          <div class="specimen-guides"></div>
+          <div class="specimen-box" aria-live="polite">
+          <div class="specimen-guides" aria-hidden="true"></div>
+
+          <!-- guide labels -->
+          <span class="guide-label asc">Ascender height</span>
+          <span class="guide-label xh">x-height</span>
+          <span class="guide-label base">Baseline</span>
+          <span class="guide-label desc">Descender height</span>
+
           <div id="glyphPreview" class="specimen-glyph">A</div>
+        </div>
         </div>
       </div>
       <div class="charset__right" id="charsetRight"></div>

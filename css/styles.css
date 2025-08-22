@@ -564,167 +564,110 @@ body:not(.app-on) .topnav { display: none; }
 
 
 
-
-
-/* ---- layout ---- */
-.charset{
-  display: grid;
-  grid-template-columns: minmax(280px, 1.1fr) 1.4fr;
-  gap: clamp(16px, 4vw, 48px);
-  align-items: start;
-}
-@media (max-width: 900px){
-  .charset{ grid-template-columns: 1fr; }
+/* --- sticky preview pane --- */
+:root{
+  --nav-h: 60px;                   /* adjust to your actual nav height */
+  --stick-top: calc(var(--nav-h) + 12px);
 }
 
-/* left: big preview with guides */
+.section.section--glyphs,
+.section.section--glyphs .container{ overflow: visible; }
+
+.charset{ display: grid; grid-template-columns: minmax(280px, 1.1fr) 1.4fr; gap: clamp(16px, 4vw, 48px); align-items: start; }
+@media (max-width: 900px){ .charset{ grid-template-columns: 1fr; } }
+
+/* left column sticks */
+.charset__left{
+  position: sticky;
+  top: var(--stick-top);
+  align-self: start;
+  height: fit-content;
+}
+
+/* Let the box size be available to children (for future scaling) */
+.specimen-box{ container-type: size; }
+
+/* default (fallback) positions — will be overwritten by JS */
 .specimen-box{
-  position: relative;
-  aspect-ratio: 4 / 3;            /* nice proportion */
-  background: #f0f0ea;
-  border: 1px solid #cfcfc4;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
+  --asc-y: 22%;
+  --xh-y:  38%;
+  --base-y:70%;
+  --desc-y:92%;
 }
+
+/* draw 4 lines using one element; each layer is positioned by a var */
 .specimen-guides{
   position: absolute; inset: 0;
-  background:
-    linear-gradient(#cfcfc4 0 0) top 25%/100% 1px no-repeat,
-    linear-gradient(#cfcfc4 0 0) center/100% 1px no-repeat,
-    linear-gradient(#cfcfc4 0 0) bottom 25%/100% 1px no-repeat;
+  background-image:
+    linear-gradient(var(--tile-border) 0 0),
+    linear-gradient(var(--tile-border) 0 0),
+    linear-gradient(var(--tile-border) 0 0),
+    linear-gradient(var(--tile-border) 0 0);
+  background-repeat: no-repeat;
+  background-size: 100% 1px, 100% 1px, 100% 1px, 100% 1px;
+  background-position:
+    0 var(--asc-y),
+    0 var(--xh-y),
+    0 var(--base-y),
+    0 var(--desc-y);
+  opacity: .6;
   pointer-events: none;
-  opacity: .6;
 }
-.specimen-glyph{
-  font-family: "BrasparzWeb", system-ui, sans-serif;
-  font-variation-settings: "wght" var(--wght, 50);
-  /* Enable alt sets only if you want a default look; JS will override */
-  /* font-feature-settings: "ss01" 1; */
-  font-size: clamp(7rem, 20vw, 28rem);
-  line-height: 1;
-  color: #101010;
-}
-.section--glyphs.theme-dark{
-  --glyphs-bg: #141414;
-  --specimen-bg: #1b1b1b;
-  --tile-bg: #1f1f1f;
-  --tile-border: #2a2a2a;
-  --tile-hover-bg: #e8b800;     /* your yellow */
-  --tile-hover-fg: #101010;
-  --glyph-color: #e8b800;
-}
-
-/* right: groups */
-.charset__right{
-  display: grid;
-  gap: clamp(20px, 3vw, 36px);
-}
-
-.group{
-  display: grid;
-  gap: 10px;
-}
-.group h4{
-  margin: 0;
-  font-family: var(--ui-sans, system-ui, sans-serif);
-  font-weight: 600;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  font-size: clamp(12px, 1.2vw, 14px);
+/* labels sit on those lines */
+.guide-label{
+  position: absolute;
+  left: 10px;
+  transform: translateY(-50%);
+  font: 12px/1 var(--ui-sans, system-ui, sans-serif);
   color: #2F2C2C;
-}
-
-/* tile grid */
-.grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
-  gap: 6px;
-  align-items: stretch;
-}
-.tile{
-  --feat: normal;                 /* will be overridden per group/tile */
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1 / 1;
-  border: 1px solid #cfcfc4;
-  background: #fff;
-  cursor: pointer;
-  transition: background .12s ease, color .12s ease, border-color .12s ease;
+  opacity: .8;
   user-select: none;
+  pointer-events: none;
 }
-.tile:hover,
-.tile:focus-visible{
-  background: #101010;
-  color: #fff;
-  outline: none;
+.guide-label.asc  { top: var(--asc-y); }
+.guide-label.xh   { top: var(--xh-y); }
+.guide-label.base { top: var(--base-y); }
+.guide-label.desc { top: var(--desc-y); }
+
+/* (optional) make the preview letter larger */
+.specimen-glyph{
+  /* fallback */
+  font-size: clamp(12rem, 30vw, 40rem);
 }
-.tile span{
-  font-family: "BrasparzWeb", system-ui, sans-serif;
-  font-size: clamp(18px, 2.4vw, 28px);
-  line-height: 1;
-  color: inherit;
-  font-variation-settings: "wght" var(--wght, 50);
-  font-feature-settings: var(--feat, normal);
+@supports (font-size: 1cqh){
+  .specimen-glyph{ font-size: clamp(14rem, 72cqh, 60rem); line-height:.9; }
 }
 
-/* small caption under grids (optional) */
-.group .note{
-  font-family: var(--ui-sans, system-ui, sans-serif);
-  opacity: .6;
-  font-size: 12px;
-}
+.section.section--glyphs{ background: var(--glyphs-bg); }
 
-/* ===== Glyphs section theming tokens ===== */
-.section--glyphs{
-  --glyphs-bg: var(--bg);
-  --specimen-bg: #f0f0ea;
-  --tile-bg: #fff;
-  --tile-border: #cfcfc4;
-  --tile-hover-bg: #101010;
-  --tile-hover-fg: #fff;
-  --glyph-color: #101010;
-}
-
-/* set the section band background (overrides .section background) */
-.section.section--glyphs{
-  background: var(--glyphs-bg);
-}
-
-/* ===== Consume the tokens (override hard-coded colors) ===== */
-.section--glyphs .specimen-box{
-  background: var(--specimen-bg);
-  border-color: var(--tile-border);
-}
+.section--glyphs .specimen-box{ background: var(--specimen-bg); border-color: var(--tile-border); }
 .section--glyphs .specimen-guides{
   background:
     linear-gradient(var(--tile-border) 0 0) top 25%/100% 1px no-repeat,
     linear-gradient(var(--tile-border) 0 0) center/100% 1px no-repeat,
     linear-gradient(var(--tile-border) 0 0) bottom 25%/100% 1px no-repeat;
 }
-.section--glyphs .specimen-glyph{
-  color: var(--glyph-color);
-}
-.section--glyphs .tile{
-  background: var(--tile-bg);
-  border-color: var(--tile-border);
-}
+.section--glyphs .specimen-glyph{ color: var(--glyph-color); }
+.section--glyphs .tile{ background: var(--tile-bg); border-color: var(--tile-border); }
 .section--glyphs .tile:hover,
-.section--glyphs .tile:focus-visible{
-  background: var(--tile-hover-bg);
-  color: var(--tile-hover-fg);
-}
+.section--glyphs .tile:focus-visible{ background: var(--tile-hover-bg); color: var(--tile-hover-fg); }
 
-/* ===== Theme variant: dark ===== */
+/* dark variant just reassigns tokens */
 .section--glyphs.theme-dark{
-  --glyphs-bg: #141414;
-  --specimen-bg: #1b1b1b;
-  --tile-bg: #1f1f1f;
+  --glyphs-bg: #7e7e7e;
+  --specimen-bg: #dedede;
+  --tile-bg: #4e4e4e;
   --tile-border: #2a2a2a;
-  --tile-hover-bg: #e8b800;   /* your yellow */
+  --tile-hover-bg: #e8b800;
   --tile-hover-fg: #101010;
   --glyph-color: #e8b800;
 }
+
+
+
+
+
+
 
 
 

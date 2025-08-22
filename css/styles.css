@@ -342,7 +342,7 @@ body:not(.app-on) .topnav { display: none; }
 }
 
 /* ===== Sections use the same container gutters ===== */
-.section{ padding-block: clamp(48px, 10vw, 120px); background: var(--paper); }
+.section{ padding-block: clamp(48px, 5vw, 80px); background: var(--paper); }
 
 /* If it's the first section after the nav */
 .section:first-of-type {
@@ -369,7 +369,7 @@ body:not(.app-on) .topnav { display: none; }
 }
 .overview-grid p{ font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
   "Helvetica Neue", Arial, sans-serif; 
-  font-size: clamp(16px, 1.7vw, 18px); 
+  font-size: clamp(8px, 1.6vw, 16px); 
   line-height: 1.45; 
   font-weight: 400; 
   color: #191818; 
@@ -397,62 +397,67 @@ body:not(.app-on) .topnav { display: none; }
 
 
 
-/* Container sizing (matches your gutters) */
-.alpha-spot{
-  box-sizing: border-box;                 /* ← key */
-  width: min(var(--page-max), 100vw);     /* full viewport, capped */
+:root{
+  --page-max: 1740px;
+  --page-pad: clamp(20px, 6.5vw, 96px);
+}
+
+*,*::before,*::after{ box-sizing: border-box; }
+
+/* OUTER WRAPPER: owns gutters + max width */
+.alphabet-block{
+  max-width: var(--page-max);
   margin-inline: auto;
-  padding-inline: var(--page-pad);        /* gutters included in width */
+  padding-inline: var(--page-pad);
+}
 
-  aspect-ratio: 16 / 9;
+/* SECTION: fills wrapper, no rounded corners */
+#alphaSpot{
   position: relative;
-  isolation: isolate;
+  width: 100%;
   background: var(--bg);
-  border-radius: 12px;
   overflow: hidden;
+  border-radius: 0;
 
+  /* reveal vars */
   --mx: 50%;
   --my: 50%;
   --r: 0vmin;
   --overlap: 2px;
 }
 
-.alpha-spot .alpha{
+/* LAYERS: fill the section box */
+#alphaSpot .alpha{
   position: absolute;
-  inset: 0;              /* fills the padded box */
+  inset: 0;
   width: 100%;
-  height: fit-content;
+  height: 100%;           /* will follow the section’s aspect-ratio */
   object-fit: contain;
-  display: block;
-   border-radius: inherit;
+  pointer-events: none;
+  border-radius: 0;
 }
 
-/* Stack stays the same */
-.upper{ z-index: 2; }   /* gets the hole cut out */
-.lower{ z-index: 1; }   /* only visible inside the hole */
-
-/* Cut a circular HOLE in the UPPER layer */
-/* Hard-edged circular hole */
-.upper{
+/* Masks (hard edge + tiny overlap to kill seams) */
+#alphaSpot .upper{
   -webkit-mask: radial-gradient(circle var(--r) at var(--mx) var(--my),
                  transparent 100%, #000 0);
           mask: radial-gradient(circle var(--r) at var(--mx) var(--my),
                  transparent 100%, #000 0);
 }
-
-/* Lower visible ONLY inside circle, slightly bigger to cover any gap */
-.lower{
+#alphaSpot .lower{
   -webkit-mask: radial-gradient(circle calc(var(--r) + var(--overlap)) at var(--mx) var(--my),
                  #000 100%, transparent 0);
           mask: radial-gradient(circle calc(var(--r) + var(--overlap)) at var(--mx) var(--my),
                  #000 100%, transparent 0);
 }
 
-/* On hover, grow the reveal circle; off hover, r=0 so lowercase is fully hidden */
-.alpha-spot:hover{ --r: 15vmin; }
+/* Circle size */
+#alphaSpot:hover{ --r: clamp(8vmin, 12vw, 18vmin); }
 
-/* (Optional) ensure the container gets the hover, not the images */
-.alpha-spot .alpha { pointer-events: none; }
+
+
+
+
 
 
 

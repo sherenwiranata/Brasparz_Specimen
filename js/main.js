@@ -249,7 +249,16 @@ new ResizeObserver(setNavH).observe(nav);
   }
   requestAnimationFrame(tick);
 })();
+const spot  = document.getElementById('alphaSpot');
+const lower = spot.querySelector('.lower');
 
+function setSpotRatio(){
+  const w = lower.naturalWidth, h = lower.naturalHeight;
+  if (w && h) spot.style.aspectRatio = `${w} / ${h}`;
+}
+lower.complete ? setSpotRatio() : lower.addEventListener('load', setSpotRatio);
+
+// (keep your existing pointer move code that updates --mx / --my)
 
 // weight slider
 const wght = document.getElementById('wght');

@@ -221,7 +221,35 @@ new ResizeObserver(setNavH).observe(nav);
 
 
 // ********************************* UI hookups for specimen page *****************************
-const root = document.documentElement;
+
+
+// Make the reveal follow the cursor smoothly
+(() => {
+  const el = document.getElementById('alphaSpot');
+  let mx = 50, my = 50, tx = 50, ty = 50;
+
+  function setFromEvent(e){
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width  * 100;
+    const y = (e.clientY - r.top)  / r.height * 100;
+    tx = Math.max(0, Math.min(100, x));
+    ty = Math.max(0, Math.min(100, y));
+  }
+
+  el.addEventListener('pointermove', setFromEvent);
+  el.addEventListener('pointerdown', setFromEvent);
+
+  // gentle easing so it doesn’t feel “stiff”
+  function tick(){
+    mx += (tx - mx) * 0.12;
+    my += (ty - my) * 0.12;
+    el.style.setProperty('--mx', mx.toFixed(2) + '%');
+    el.style.setProperty('--my', my.toFixed(2) + '%');
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
 
 // weight slider
 const wght = document.getElementById('wght');

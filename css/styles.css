@@ -612,47 +612,59 @@ body:not(.app-on) .topnav { display: none; }
 
 /* ========= knobs / tokens ========= */
 :root{
+  /* sticky offset (gap below navbar) */
   --nav-h: 60px;
-  --stick-gap: 30px;                  /* << increase/decrease here */
+  --stick-gap: 30px;
   --stick-top: calc(var(--nav-h) + var(--stick-gap));
 
+  /* palette */
   --paper: #f6f1e6;
   --ink:   #2F2C2C;
 
-  --yellow:     #E2B100;
-  --red:        #D33A2C;
-  --blue:       #0B61C6;
-
-  /* right grid tiles */
-  --tile-outline: #2F2C2C;   /* subtle fence color */
-  --tile-corner:  2px;       /* ↓ make smaller (1px / 0px) for sharper corners */
-  --tile-size:    42px;
-  --tile-gap:     8px;
-
-  --ui-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-             "Helvetica Neue", Arial, sans-serif;
-
-  /* shared accent (right hover + left box sync if you set it via JS) */
+  /* accents you can randomize via JS */
+  --yellow: #E2B100;
+  --red:    #D33A2C;
+  --blue:   #0B61C6;
   --accent:    var(--yellow);
   --accent-fg: var(--ink);
+
+  /* right-grid tiles */
+  --tile-outline: #f6f1e6;      /* outline color of right tiles */
+  --tile-size:    clamp(46px, 3.4vw, 58px);
+  --tile-gap-x:   clamp(8px, 1.8vw, 10px);
+  --tile-gap-y:   clamp(8px, 1.4vw, 10px);
+  --tile-corner:  3px;             /* ← your 3px radius */
+
+  /* UI font for the grid */
+  --ui-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+             "Helvetica Neue", Arial, sans-serif;
 }
 
-/* ========== section frame / columns ========== */
+/* ========= section frame / columns ========= */
 .section.section--glyphs,
-.section.section--glyphs .container { overflow: visible; }
-.section.section--glyphs { background: var(--paper); color: var(--ink); }
-
-.section--glyphs{ --tile-corner: 3px; }
-
+.section.section--glyphs .container{ overflow: visible; }
+.section.section--glyphs{ background: var(--paper); color: var(--ink); }
+.section--glyphs .container{
+  /* use the exact same container contract everywhere */
+  width: min(var(--page-max), calc(100% - 2 * var(--page-pad)));
+  margin-inline: auto;
+  /* OR, if you prefer padding-based gutters instead of width math: */
+  /* box-sizing: border-box;
+     max-width: var(--page-max);
+     padding-inline: var(--page-pad);
+     margin-inline: auto; */
+}
 .charset{
   display: grid;
   grid-template-columns: minmax(280px, 1.1fr) 1.4fr;
   gap: clamp(16px, 4vw, 48px);
   align-items: start;
 }
-@media (max-width:900px){ .charset{ grid-template-columns: 1fr; } }
+@media (max-width: 900px){
+  .charset{ grid-template-columns: 1fr; }
+}
 
-/* ========== LEFT: sticky preview ========== */
+/* ========= LEFT: sticky preview ========= */
 .charset__left{
   position: sticky;
   top: var(--stick-top);
@@ -662,26 +674,30 @@ body:not(.app-on) .topnav { display: none; }
 
 /* preview tile */
 .specimen-box{
-  --specimen-bg: var(--yellow);          /* JS can randomize this */
+  --specimen-bg: var(--yellow);       /* JS can randomize this */
   position: relative;
   container-type: size;
   aspect-ratio: 1 / 1;
   border-radius: 14px;
   background: var(--specimen-bg);
-  border: 2px solid var(--yellow);
   display: grid;
   place-items: center;
   padding: clamp(12px, 2vmin, 18px);
   transition: background .18s ease, border-color .18s ease;
-  border-color: transparent;
 }
 
 /* animated VF weight (0 → 20 → 50 → 75 → 100 → back) */
-@property --wght { syntax:'<number>'; inherits:true; initial-value:50; }
+@property --wght { syntax: '<number>'; inherits: true; initial-value: 50; }
 @keyframes vfWeightBeats{
-  0%,4%{--wght:0} 12%,16%{--wght:20} 28%,32%{--wght:50}
-  44%,48%{--wght:75} 60%,64%{--wght:100} 76%,80%{--wght:75}
-  88%,92%{--wght:50} 96%,98%{--wght:20} 100%{--wght:0}
+  0%,  4%  { --wght: 0;   }
+ 12%, 16%  { --wght: 20;  }
+ 28%, 32%  { --wght: 50;  }
+ 44%, 48%  { --wght: 75;  }
+ 60%, 64%  { --wght: 100; }
+ 76%, 80%  { --wght: 75;  }
+ 88%, 92%  { --wght: 50;  }
+ 96%, 98%  { --wght: 20;  }
+ 100%      { --wght: 0;   }
 }
 .specimen-glyph{
   color: var(--ink);
@@ -689,58 +705,75 @@ body:not(.app-on) .topnav { display: none; }
   font-variation-settings: "wght" var(--wght);
   animation: vfWeightBeats 6s ease-in-out infinite;
   font-size: clamp(14rem, 72cqh, 60rem);
-  line-height: 1;                 /* no extra leading */
+  line-height: 1;
   display: inline-block;
   text-align: center;
-  transform: translateY(var(--center-nudge, 0)); /* JS can nudge optical center */
+  transform: translateY(var(--center-nudge, 0)); /* optional JS centering tweak */
 }
 @media (prefers-reduced-motion: reduce){
   .specimen-glyph{ animation: none; }
 }
 
-/* ========== RIGHT: groups & tiles ========== */
-.charset__right{ display: grid; gap: clamp(20px, 3vw, 36px); }
+/* ========= RIGHT: groups & tiles ========= */
+.charset__right{
+  display: grid;
+  gap: clamp(20px, 3vw, 36px);
+}
 
-.group{ display: grid; gap: 10px; }
+.group{
+  display: grid;
+  gap: 0px;
+}
 .group h4{
   margin: 0 0 15px 0;
-  font: 450 16px/1 var(--ui-sans);
+  font: 450 18px/1 var(--ui-sans);
   letter-spacing: .01em;     /* lighter tracking for lc headings */
-  text-transform: none;      /* "Uppercase" not ALL CAPS */
-}
-
-/* grid of tiles */
-.grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--tile-size), 1fr));
-  gap: var(--tile-gap);
-}
-
-/* base tile (right grid only) */
-.charset__right .tile{
-  display: grid; place-items: center;
-  width: var(--tile-size); aspect-ratio: 1 / 1;
-  border-radius: var(--tile-corner);
-  background: var(--paper);                 /* same as page */
+  text-transform: none;      /* “Uppercase” (not ALL CAPS) */
   color: var(--ink);
-  border: 1.5px solid var(--tile-outline);  /* subtle fence */
-  box-shadow: none;
-  cursor: pointer;
-  transition:
-    background .14s ease,
-    color .14s ease,
-    border-color .14s ease,
-    box-shadow .14s ease;
 }
 
-/* glyph inside each tile */
+/* fixed square grid with comfy gutters */
+.charset__right .grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--tile-size));
+  grid-auto-rows: var(--tile-size);
+  justify-content: start;         /* avoid stretching */
+  column-gap: var(--tile-gap-x);
+  row-gap: var(--tile-gap-y);
+  padding-block: 10px;
+}
+
+/* base tile */
+.charset__right .tile{
+  inline-size: var(--tile-size);
+  block-size: var(--tile-size);
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border-radius: var(--tile-corner);
+  background: var(--paper);
+  border: 1.5px solid var(--tile-outline);
+  color: var(--ink);         /* ensure solid ink */
+  opacity: 1;               /* kill any accidental fades */
+  cursor: pointer;
+  transition: background .14s, color .14s, border-color .14s, box-shadow .14s;
+}
+
+/* glyph inside tile */
 .charset__right .tile span{
-  font-family: "BrasparzWeb", system-ui, sans-serif;
-  font-size: 22px; line-height: 1;
+  display: block;
+  line-height: 1;
+  text-align: center;
+  font-family: var(--ui-sans);
+  font-weight: 600;
+  letter-spacing: .01em;
+  font-size: calc(var(--tile-size) * .30);
+  color: currentColor;   /* inherits from .tile */
+  opacity: 1;            /* ensure no inherited fade */
   transition: transform .12s ease;
 }
 
-/* hovered/focused tile uses the shared accent color */
+/* hover/focus uses the shared accent (and only the hovered tile changes) */
 .charset__right .tile:hover,
 .charset__right .tile:focus-visible{
   background: var(--accent);
@@ -750,67 +783,12 @@ body:not(.app-on) .topnav { display: none; }
   outline: none;
 }
 .charset__right .tile:hover span{ transform: translateY(-1px); }
-/* ----- knobs for the right grid spacing/size ----- */
-:root{
-  /* tile size scales with viewport; tweak to taste */
-  --tile: clamp(46px, 3.4vw, 58px);
 
-  /* independent gaps so you can tune the feel */
-  --tile-gap-x: clamp(8px, 1.8vw, 10px);
-  --tile-gap-y: clamp(8px, 1.4vw, 10px);
-
-  --tile-outline: #2F2C2C;
-}
-
-/* Right column grid: fixed squares with comfy gutters */
-.charset__right .grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fill, var(--tile)); /* fixed tracks */
-  grid-auto-rows: var(--tile);                           /* fixed rows   */
-  justify-content: start;                                /* no stretching */
-  column-gap: var(--tile-gap-x);                         /* wider H gap  */
-  row-gap: var(--tile-gap-y);                            /* wider V gap  */
-  padding-block: 2px;                                    /* small air    */
-}
-
-/* Square tiles */
-.charset__right .tile{
-  inline-size: var(--tile);
-  block-size: var(--tile);
-  box-sizing: border-box;
-  display: grid;
-  place-items: center;
-  border-color: #2F2C2C;
-  border: 2px solid var(--tile-outline);
-  border-radius: 3px;             /* ← 3px corners */
-  background: var(--paper);
-  color: var(--ink);
-  cursor: pointer;
-  transition: background .14s, color .14s, border-color .14s, box-shadow .14s;
-}
+/* mobile tap highlight off (optional) */
+.charset__right .tile{ -webkit-tap-highlight-color: transparent; }
+.charset__right .tile { border-color: var(--ink); }  /* place after the existing rule */
 
 
-/* Use system font; keep text truly centred */
-.charset__right .tile span{
-  display: block;
-  line-height: 1;
-  text-align: center;
-  font-family: var(--ui-sans, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   Roboto, "Helvetica Neue", Arial, sans-serif);
-  font-weight: 600;
-  letter-spacing: .01em;
-  font-size: calc(var(--tile) * .30);
-}
-
-/* Focus/hover only affects the tile under the pointer */
-.charset__right .tile:hover,
-.charset__right .tile:focus-visible{
-  background: var(--accent, var(--yellow));
-  color: var(--accent-fg, var(--ink));
-  border-color: transparent;
-  box-shadow: 0 0 0 2px var(--accent, var(--yellow));
-  outline: none;
-}
 
 
 

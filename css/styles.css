@@ -399,16 +399,18 @@ body:not(.app-on) .topnav { display: none; }
 
 
 
-
-
+/* ================================================ weight with glyph on the right ==================================== */
 
 :root{
   --page-max: 1740px;
   --page-pad: clamp(20px, 6.5vw, 96px);
-    --tile-radius: clamp(12px, 1.4vw, 28px);
+  --tile-radius: 0px;                          /* crisper Deco curve */
+  --ink: #2F2C2C;
+  --accent: #D4382F;                            /* slightly softer yellow */
+  --gap-xl: clamp(8px, 1vw, 8px);             /* roomy column gap */
 }
 
-/* Wrapper: handles gutters + max width */
+/* wrapper */
 .weights-block{
   box-sizing: border-box;
   max-width: var(--page-max);
@@ -416,18 +418,27 @@ body:not(.app-on) .topnav { display: none; }
   padding-inline: var(--page-pad);
 }
 
-/* Section layout */
+/* ================ layout ================ */
 #weights{
-  --active-w: 50;                 /* default preview weight */
+  --active-w: 50;
   display: grid;
-  grid-template-columns: 1fr minmax(320px, 0.9fr);
-  gap: clamp(16px, 4vw, 48px);
-  align-items: stretch;
+  grid-template-columns: minmax(320px, 1.15fr) minmax(320px, .85fr); /* favor the list */
+  column-gap: var(--gap-xl);
+  align-items: start;
+  --tile-radius: clamp(8px, 1.2vw, 18px);  
 }
 
-/* Left column */
+/* subtle column separation (Bauhaus loves crisp rules) */
+
+/* stack on small screens */
+@media (max-width: 900px){
+  #weights{ grid-template-columns: 1fr; }
+  .weights__right{ box-shadow: none; }
+}
+
+/* ================ left column ================ */
 .weights__heading{
-  margin: 0 0 .5rem 0;
+  margin: 0 0 .75rem 0;
   font: inherit;
   opacity: .7;
 }
@@ -435,57 +446,92 @@ body:not(.app-on) .topnav { display: none; }
 .weights__list{
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0;           /* top/bottom air */
   display: grid;
-  gap: .5rem;
-  font-size: clamp(15px, 10vw, 120px);
-  color: #2F2C2C;
+  gap: 0; 
+  font-size: clamp(28px, 8vw, 100px);         /* a touch calmer */
+  color: var(--ink);
 }
 
-/* Base */
+/* big, stable targets; no motion on hover */
 .weight-item button{
   all: unset;
   cursor: pointer;
   display: block;
-  padding: .35rem .25rem;
+  min-height: 44px;                             /* touch target */
+  padding-block: clamp(6px,.8vw,12px);
   line-height: 1;
   font-family: "BrasparzWeb", system-ui, sans-serif;
   font-variation-settings: "wght" var(--w);
-  transition: color .15s ease, opacity .15s ease;   /* ← no transform */
+  font-feature-settings: "tnum" 1, "lnum" 1;    /* align the numerals */
+  color: var(--ink);
+  transition: color .15s ease, opacity .15s ease;
 }
-
-/* Hover/focus: no translate; just color */
-.weight-item button:hover,
+.weight-item button:hover{ color: var(--accent); }
 .weight-item button:focus-visible{
-  color: #E8B800;      /* pick your accent */
-  opacity: 1;
-  outline: none;
-  transform: none;     /* kills the little nudge */
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-/* Right column: big glyph preview */
+#weights{ 
+  align-items: center;              /* was start */
+}
+#weights > *{
+  align-self: center;
+}
+
+/* ================ right column (tile) ================ */
 .weights__right{
-  background-color: #E8B800;          /* your red */
+  position: relative;
   display: grid;
   place-items: center;
-   min-height: clamp(200px, 22vmin, 420px);
-  border-radius: var(--tile-radius);  /* ← round it */
-  overflow: hidden;                   /* keeps content clipped to radius */
+  background-color: var(--accent);
+  aspect-ratio: 1 / 1;                           /* bold, poster-like square */
+  min-height: clamp(240px, 32vmin, 520px);
+  border-radius: var(--tile-radius);
+  overflow: hidden;
+}
+
+/* Deco “keyline” inside the tile for structure */
+.weights__right::after{
+  content:"";
+  position:absolute; inset: clamp(10px,1.4vw,18px);
+  border-radius: inherit;
+  pointer-events:none;
 }
 
 .glyph{
   font-family: "BrasparzWeb", system-ui, sans-serif;
   font-variation-settings: "wght" var(--active-w);
-  font-feature-settings: "ss01" 1;   /* try ss01 first */
-    font-size: clamp(12rem, 45vw, 38rem);
-  color: #2F2C2C;
+  font-feature-settings: "ss01" 1;
+  color: var(--ink);
+  line-height: .9;
+  /* responsive size that respects the square tile */
+  font-size: clamp(10rem, 42cqw, 36rem);         /* falls back below */
 }
-/* Responsive: stack on small screens */
-@media (max-width: 900px){
-  #weights{ grid-template-columns: 1fr; }
-  .weights__right{ min-height: clamp(240px, 55vmin, 520px); }
+@supports not (font-size: 1cqw){
+  .glyph{ font-size: clamp(10rem, 45vw, 38rem); }
 }
-
+.weights__right{ position: relative; cursor: help; }
+.cursor-hint{
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  /*background: rgba(16,16,16,.9);*/
+  color: #F4EFE4;
+  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  font-size: 1.5vw;
+  font-weight: 300;
+  padding: 8px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease, transform .15s ease;
+}
+.weights__right:hover .cursor-hint{
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.02);
+}
 
 
 

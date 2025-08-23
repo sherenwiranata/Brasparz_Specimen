@@ -335,62 +335,116 @@ new ResizeObserver(setNavH).observe(nav);
 
 
 
-
 (() => {
   const section = document.getElementById('charset');
   const right   = document.getElementById('charsetRight');
   const preview = document.getElementById('glyphPreview');
   const leftCol = document.querySelector('.charset__left');
   const box     = preview?.closest('.specimen-box');
-
   if (!section || !right || !preview || !leftCol || !box) return;
 
-  /* ===== helpers ===== */
+  /* ---------- Left/Right accent color sync ---------- */
   const COLORS = [
-    {bg:'#D33A2C', border:'#BE2F23'}, // red
-    {bg:'#0B61C6', border:'#094FA4'}, // blue
-    {bg:'#E2B100', border:'#C89B08'}  // yellow
+    { bg:'#D33A2C', border:'#BE2F23' }, // red
+    { bg:'#0B61C6', border:'#094FA4' }, // blue
+    { bg:'#E2B100', border:'#C89B08' }  // yellow
   ];
-  const rand = (n) => Math.floor(Math.random() * n);
-  const setPreviewColors = () => {
+  const rand = n => Math.floor(Math.random() * n);
+  function setPreviewColors(){
     const c = COLORS[rand(COLORS.length)];
+    // left specimen tile
     box.style.setProperty('--specimen-bg', c.bg);
     box.style.borderColor = c.border;
-    // also tint guide line color a touch toward the border
-    box.style.setProperty('--tile-border', c.border + 'cc');
-  };
+    // right-grid hover accent (your CSS reads --accent / --accent-fg)
+    section.style.setProperty('--accent', c.bg);
+    section.style.setProperty('--accent-fg', 'var(--ink)');
+  }
 
-  /* ===== preview update (called on hover/focus/click) ===== */
+  /* ---------- preview update ---------- */
   let activeFeat = 'normal';
-  function updatePreview(char, featToken = 'normal'){
-    preview.textContent = char;
+  function updatePreview(text, featToken = 'normal'){
+    preview.textContent = text;
     activeFeat = featToken;
     preview.style.fontFeatureSettings = featToken;
     setPreviewColors();
     if (window.__updateSpecimenGuides) window.__updateSpecimenGuides();
   }
 
-  /* ===== build groups/tiles ===== */
-  const groups = [];
-  function addGroup({ title, chars, feature }) {
+  /* ================= Data ================= */
+  // Core sets
+  const UC   = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+  const LC   = [..."abcdefghijklmnopqrstuvwxyz"];
+  const NUM  = [..."0123456789"];
+  const PUNC = ["!","?",",",".",";",";",":","–","—","(",")","'","\"", "\\","/","%","&"];
+
+  // Initial Uppercase (all caps) — uses TITL
+  const INIT_UC = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+
+  // Initial Uppercase — Alternates & SS (subset from your specimen row)
+  // A, E, C, G, I, M, O, R, S, T, W
+  const INIT_UC_SS = [..."AECGIMORSTW"];
+
+  // Per-letter features for that row:
+  // E/R/T worked for you with AALT+SS01; the rest: TITL+SS01
+  const INIT_UC_SS_ITEMS = INIT_UC_SS.map(ch => {
+    const perLetter = {
+      E: '"aalt" 1, "ss01" 1',
+      R: '"aalt" 1, "ss01" 1',
+      T: '"aalt" 1, "ss01" 1',
+      A: '"titl" 1, "ss01" 1',
+      C: '"titl" 1, "ss01" 1',
+      G: '"titl" 1, "ss01" 1',
+      I: '"titl" 1, "ss01" 1',
+      M: '"titl" 1, "ss01" 1',
+      O: '"titl" 1, "ss01" 1',
+      S: '"titl" 1, "ss01" 1',
+      W: '"titl" 1, "ss01" 1'
+    };
+    return { txt: ch, feat: perLetter[ch] || '"aalt" 1, "ss01" 1' };
+  });
+
+  // Uppercase — Alternates & Stylistic Sets (keep as-is)
+  const UC_SS = [..."AEGIMORSTWD"];     // keep your existing good set
+
+  // Lowercase — Alternates & SS (keep ss01 set, plus ss02 m/n duplicates)
+  const LC_SS01 = [..."abdemnrwy"];
+  const LC_SS_ITEMS = [
+    ...LC_SS01.map(ch => ({ txt: ch, feat: '"ss01" 1' })),
+    { txt: 'm', feat: '"ss02" 1' },
+    { txt: 'n', feat: '"ss02" 1' }
+  ];
+
+  // Ligatures (unchanged)
+  const LIGAS = ["ff","fi","fl","ft","ss","OO"];
+
+  /* =============== Flexible group builder =============== */
+  const groups = []; // for sticky lock
+
+  // Accepts either:
+  // - chars: "ABC" -> single feature for all tiles
+  // - items: [{txt:'m', feat:'"ss01" 1'}, ...] -> per-tile features
+  function addGroup({ title, chars, items, feature }) {
+    const tiles = items
+      ? items.map(it => (typeof it === 'string' ? ({ txt: it, feat: feature || 'normal' }) : it))
+      : [...(chars ?? "")].map(ch => ({ txt: ch, feat: feature || 'normal' }));
+
     const group = document.createElement('div');
     group.className = 'group';
     group.innerHTML = `<h4>${title}</h4><div class="grid"></div>`;
     const grid = group.querySelector('.grid');
-    const featToken = feature || 'normal';
 
-    [...chars].forEach(ch => {
+    tiles.forEach(({ txt, feat }) => {
       const cell = document.createElement('button');
       cell.className = 'tile';
       cell.type = 'button';
-      cell.innerHTML = `<span>${ch}</span>`;
-      cell.addEventListener('pointerenter', () => updatePreview(ch, featToken));
-      cell.addEventListener('focus',        () => updatePreview(ch, featToken));
-      cell.addEventListener('click',        () => updatePreview(ch, featToken));
+      cell.innerHTML = `<span>${txt}</span>`;
+      cell.addEventListener('pointerenter', () => updatePreview(txt, feat));
+      cell.addEventListener('focus',        () => updatePreview(txt, feat));
+      cell.addEventListener('click',        () => updatePreview(txt, feat));
       grid.appendChild(cell);
     });
 
-    // sentinels for sticky lock
+    // Sentinels for sticky lock
     const start = document.createElement('div');
     start.className = 'group-sentinel start';
     start.style.cssText = 'height:1px;margin-top:-1px;';
@@ -406,117 +460,68 @@ new ResizeObserver(setNavH).observe(nav);
     group.prepend(start);
     group.appendChild(end);
     right.appendChild(group);
-    groups.push({ title, chars, feature: featToken, startEl: start, endEl: end });
+
+    const first = tiles[0] || { txt: '•', feat: 'normal' };
+    groups.push({ title, firstText: first.txt, firstFeat: first.feat, startEl: start, endEl: end });
   }
 
-  const UC   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const LC   = "abcdefghijklmnopqrstuvwxyz";
-  const NUM  = "0123456789";
-  const PUNC = "!?,.;:–—()[]{}'\"/@#$%&*+=<>^~•…";
+  /* ================= Build groups ================= */
+  addGroup({ title: "Uppercase",   chars: UC });
+  addGroup({ title: "Lowercase",   chars: LC });
+  addGroup({ title: "Numbers",     chars: NUM });
+  addGroup({ title: "Punctuation", chars: PUNC });
 
-  addGroup({ title:"Uppercase", chars:UC });
-  addGroup({ title:"Lowercase", chars:LC });
-  addGroup({ title:"Numbers",   chars:NUM });
-  addGroup({ title:"Punctuation", chars:PUNC });
+  // (unchanged) Uppercase — Alternates & Stylistic Sets
+  addGroup({ title: "Uppercase — Alternates & Stylistic Sets", chars: UC_SS, feature: '"ss01" 1' });
 
-  // stylistic sets (adjust to your font)
-  addGroup({ title:"Uppercase — SS01", chars:UC, feature:'"ss01" 1' });
-  addGroup({ title:"Lowercase — SS01", chars:LC, feature:'"ss01" 1' });
+  // (unchanged) Lowercase — Alternates & Stylistic Sets (+ m/n ss02 duplicates)
+  addGroup({ title: "Lowercase — Alternates & Stylistic Sets", items: LC_SS_ITEMS });
 
-  // initial lock
-  updatePreview('A', 'normal');
+  // (unchanged) Ligatures
+  addGroup({ title: "Ligatures", items: LIGAS, feature: '"liga" 1, "dlig" 1' });
 
-  /* ===== sticky “lock to group when its end crosses” ===== */
-  let lastScrollY = window.scrollY;
-  let lockedIdx = 0;
+  /* ------------- Initial preview + sticky lock ------------- */
   function lockToGroup(i){
-    lockedIdx = Math.max(0, Math.min(i, groups.length-1));
-    const g = groups[lockedIdx];
-    updatePreview(g.chars[0] || '•', g.feature || 'normal');
+    const idx = Math.max(0, Math.min(i, groups.length - 1));
+    const g = groups[idx];
+    updatePreview(g.firstText, g.firstFeat);
+    lockedIdx = idx;
   }
+  let lockedIdx = 0;
+  lockToGroup(0);
+
+  let lastScrollY = window.scrollY;
   const stickyTop = parseFloat(getComputedStyle(leftCol).top) || 0;
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(entry=>{
-      const idx = +entry.target.dataset.idx;
+      const idx  = +entry.target.dataset.idx;
       const type = entry.target.dataset.type;
       const down = window.scrollY > lastScrollY;
       lastScrollY = window.scrollY;
       if (!entry.isIntersecting) return;
-      if (type==='end' && down)  lockToGroup(Math.min(idx+1, groups.length-1));
+      if (type==='end'   && down)  lockToGroup(Math.min(idx+1, groups.length-1));
       if (type==='start' && !down) lockToGroup(idx);
     });
   }, { root:null, threshold:0, rootMargin:`-${stickyTop}px 0px 0px 0px` });
-  groups.forEach(g=>{ io.observe(g.startEl); io.observe(g.endEl); });
+  groups.forEach(g => { io.observe(g.startEl); io.observe(g.endEl); });
 
   right.addEventListener('pointerleave', ()=>lockToGroup(lockedIdx));
-  right.addEventListener('focusout', e=>{
-    if(!right.contains(e.relatedTarget)) lockToGroup(lockedIdx);
-  });
+  right.addEventListener('focusout', e => { if (!right.contains(e.relatedTarget)) lockToGroup(lockedIdx); });
 
-  /* ===== animated weights: 0 → 20 → 50 → 75 → 100 → 75 → 50 → 20 → … ===== */
+  /* -------- Variable weight “breathing” animation -------- */
   const seq = [0,20,50,75,100,75,50,20];
   let wi = 0, timer = null;
-
   function stepWeight(){
-    const w = seq[wi];
-    preview.style.setProperty('--wght', w);
-    // keep active features applied
+    preview.style.setProperty('--wght', seq[wi]);
     preview.style.fontFeatureSettings = activeFeat;
-    if (window.__updateSpecimenGuides) window.__updateSpecimenGuides();
     wi = (wi + 1) % seq.length;
   }
-
   function startAnim(){ if (!timer) timer = setInterval(stepWeight, 380); }
   function stopAnim(){ clearInterval(timer); timer = null; }
   startAnim();
-  document.addEventListener('visibilitychange', () => {
-    document.hidden ? stopAnim() : startAnim();
-  });
-
-  /* ===== metrics-driven guides (same idea as yours) ===== */
-  async function fontsReady(){
-    if (document.fonts && document.fonts.ready) { try{ await document.fonts.ready; }catch{} }
-  }
-  function measureGlyph(text, fontCSS){
-    const c = document.createElement('canvas');
-    const ctx = c.getContext('2d');
-    ctx.font = fontCSS;
-    const m = ctx.measureText(text);
-    return { asc: m.actualBoundingBoxAscent||0, desc: m.actualBoundingBoxDescent||0 };
-  }
-  function currentCanvasFont(){
-    const cs = getComputedStyle(preview);
-    const size = '200px';
-    const weight = cs.fontWeight || '400';
-    const family = cs.fontFamily || 'sans-serif';
-    return `${weight} ${size} ${family}`;
-  }
-  function setGuideVars({ ascTop, xTop, baseTop, descTop }){
-    box.style.setProperty('--asc-y', `${ascTop.toFixed(2)}%`);
-    box.style.setProperty('--xh-y', `${xTop.toFixed(2)}%`);
-    box.style.setProperty('--base-y', `${baseTop.toFixed(2)}%`);
-    box.style.setProperty('--desc-y', `${descTop.toFixed(2)}%`);
-  }
-  async function syncGuides(){
-    await fontsReady();
-    const fontCSS = currentCanvasFont();
-    const cap = measureGlyph('H', fontCSS);
-    const asc = measureGlyph('h', fontCSS);
-    const x   = measureGlyph('x', fontCSS);
-    const d   = measureGlyph('p', fontCSS);
-    const ascent  = Math.max(cap.asc, asc.asc, x.asc);
-    const descent = Math.max(d.desc, 0);
-    const total   = ascent + descent || 1;
-    const ascTop  = (ascent - asc.asc) / total * 100;
-    const xTop    = (ascent - x.asc)   / total * 100;
-    const baseTop =  ascent            / total * 100;
-    const descTop = (ascent + d.desc)  / total * 100;
-    setGuideVars({ ascTop, xTop, baseTop, descTop });
-  }
-  window.addEventListener('load', syncGuides);
-  window.addEventListener('resize', syncGuides);
-  window.__updateSpecimenGuides = syncGuides;
+  document.addEventListener('visibilitychange', () => document.hidden ? stopAnim() : startAnim());
 })();
+
 
   
 

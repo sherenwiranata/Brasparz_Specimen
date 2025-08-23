@@ -425,7 +425,7 @@ body:not(.app-on) .topnav { display: none; }
   grid-template-columns: minmax(320px, 1.15fr) minmax(320px, .85fr); /* favor the list */
   column-gap: var(--gap-xl);
   align-items: start;
-  --tile-radius: clamp(8px, 1.2vw, 18px);  
+  --tile-radius: clamp(8px, 1vw, 12px);  
 }
 
 /* subtle column separation (Bauhaus loves crisp rules) */
@@ -467,9 +467,9 @@ body:not(.app-on) .topnav { display: none; }
   color: var(--ink);
   transition: color .15s ease, opacity .15s ease;
 }
-.weight-item button:hover{ color: var(--accent); }
+.weight-item button:hover{ color: #D4382F; }
 .weight-item button:focus-visible{
-  outline: 2px solid var(--accent);
+  outline: 2px solid; 
   outline-offset: 2px;
 }
 
@@ -485,7 +485,7 @@ body:not(.app-on) .topnav { display: none; }
   position: relative;
   display: grid;
   place-items: center;
-  background-color: var(--accent);
+  background-color: #D4382F;
   aspect-ratio: 1 / 1;                           /* bold, poster-like square */
   min-height: clamp(240px, 32vmin, 520px);
   border-radius: var(--tile-radius);
@@ -610,19 +610,49 @@ body:not(.app-on) .topnav { display: none; }
 
 
 
-/* --- sticky preview pane --- */
+/* ========= knobs / tokens ========= */
 :root{
-  --nav-h: 60px;                   /* adjust to your actual nav height */
-  --stick-top: calc(var(--nav-h) + 12px);
+  --nav-h: 60px;
+  --stick-gap: 30px;                  /* << increase/decrease here */
+  --stick-top: calc(var(--nav-h) + var(--stick-gap));
+
+  --paper: #f6f1e6;
+  --ink:   #2F2C2C;
+
+  --yellow:     #E2B100;
+  --red:        #D33A2C;
+  --blue:       #0B61C6;
+
+  /* right grid tiles */
+  --tile-outline: #2F2C2C;   /* subtle fence color */
+  --tile-corner:  2px;       /* ↓ make smaller (1px / 0px) for sharper corners */
+  --tile-size:    42px;
+  --tile-gap:     8px;
+
+  --ui-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+             "Helvetica Neue", Arial, sans-serif;
+
+  /* shared accent (right hover + left box sync if you set it via JS) */
+  --accent:    var(--yellow);
+  --accent-fg: var(--ink);
 }
 
+/* ========== section frame / columns ========== */
 .section.section--glyphs,
-.section.section--glyphs .container{ overflow: visible; }
+.section.section--glyphs .container { overflow: visible; }
+.section.section--glyphs { background: var(--paper); color: var(--ink); }
 
-.charset{ display: grid; grid-template-columns: minmax(280px, 1.1fr) 1.4fr; gap: clamp(16px, 4vw, 48px); align-items: start; }
-@media (max-width: 900px){ .charset{ grid-template-columns: 1fr; } }
+.section--glyphs{ --tile-corner: 3px; }
 
-/* left column sticks */
+.charset{
+  display: grid;
+  grid-template-columns: minmax(280px, 1.1fr) 1.4fr;
+  gap: clamp(16px, 4vw, 48px);
+  align-items: start;
+}
+@media (max-width:900px){ .charset{ grid-template-columns: 1fr; } }
+
+/* ========== LEFT: sticky preview ========== */
 .charset__left{
   position: sticky;
   top: var(--stick-top);
@@ -630,158 +660,164 @@ body:not(.app-on) .topnav { display: none; }
   height: fit-content;
 }
 
-/* Let the box size be available to children (for future scaling) */
-.specimen-box{ container-type: size; }
-
-/* default (fallback) positions — will be overwritten by JS */
+/* preview tile */
 .specimen-box{
-  --asc-y: 22%;
-  --xh-y:  38%;
-  --base-y:70%;
-  --desc-y:92%;
+  --specimen-bg: var(--yellow);          /* JS can randomize this */
+  position: relative;
+  container-type: size;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  background: var(--specimen-bg);
+  border: 2px solid var(--yellow);
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 2vmin, 18px);
+  transition: background .18s ease, border-color .18s ease;
+  border-color: transparent;
 }
 
-/* draw 4 lines using one element; each layer is positioned by a var */
-.specimen-guides{
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(var(--tile-border) 0 0),
-    linear-gradient(var(--tile-border) 0 0),
-    linear-gradient(var(--tile-border) 0 0),
-    linear-gradient(var(--tile-border) 0 0);
-  background-repeat: no-repeat;
-  background-size: 100% 1px, 100% 1px, 100% 1px, 100% 1px;
-  background-position:
-    0 var(--asc-y),
-    0 var(--xh-y),
-    0 var(--base-y),
-    0 var(--desc-y);
-  opacity: .6;
-  pointer-events: none;
+/* animated VF weight (0 → 20 → 50 → 75 → 100 → back) */
+@property --wght { syntax:'<number>'; inherits:true; initial-value:50; }
+@keyframes vfWeightBeats{
+  0%,4%{--wght:0} 12%,16%{--wght:20} 28%,32%{--wght:50}
+  44%,48%{--wght:75} 60%,64%{--wght:100} 76%,80%{--wght:75}
+  88%,92%{--wght:50} 96%,98%{--wght:20} 100%{--wght:0}
 }
-/* labels sit on those lines */
-.guide-label{
-  position: absolute;
-  left: 10px;
-  transform: translateY(-50%);
-  font: 12px/1 var(--ui-sans, system-ui, sans-serif);
-  color: #2F2C2C;
-  opacity: .8;
-  user-select: none;
-  pointer-events: none;
-}
-.guide-label.asc  { top: var(--asc-y); }
-.guide-label.xh   { top: var(--xh-y); }
-.guide-label.base { top: var(--base-y); }
-.guide-label.desc { top: var(--desc-y); }
-
-/* (optional) make the preview letter larger */
 .specimen-glyph{
-  /* fallback */
-  font-size: clamp(12rem, 30vw, 40rem);
+  color: var(--ink);
+  font-family: "BrasparzWeb", system-ui, sans-serif;
+  font-variation-settings: "wght" var(--wght);
+  animation: vfWeightBeats 6s ease-in-out infinite;
+  font-size: clamp(14rem, 72cqh, 60rem);
+  line-height: 1;                 /* no extra leading */
+  display: inline-block;
+  text-align: center;
+  transform: translateY(var(--center-nudge, 0)); /* JS can nudge optical center */
 }
-@supports (font-size: 1cqh){
-  .specimen-glyph{ font-size: clamp(14rem, 72cqh, 60rem); line-height:.9; }
-}
-
-.section.section--glyphs{ background: var(--glyphs-bg); }
-
-.section--glyphs .specimen-box{ background: var(--specimen-bg); border-color: var(--tile-border); }
-.section--glyphs .specimen-guides{
-  background:
-    linear-gradient(var(--tile-border) 0 0) top 25%/100% 1px no-repeat,
-    linear-gradient(var(--tile-border) 0 0) center/100% 1px no-repeat,
-    linear-gradient(var(--tile-border) 0 0) bottom 25%/100% 1px no-repeat;
-}
-.section--glyphs .specimen-glyph{ color: var(--glyph-color); }
-.section--glyphs .tile{ background: var(--tile-bg); border-color: var(--tile-border); }
-.section--glyphs .tile:hover,
-.section--glyphs .tile:focus-visible{ background: var(--tile-hover-bg); color: var(--tile-hover-fg); }
-
-/* dark variant just reassigns tokens */
-.section--glyphs.theme-dark{
-  --glyphs-bg: #7e7e7e;
-  --specimen-bg: #dedede;
-  --tile-bg: #4e4e4e;
-  --tile-border: #2a2a2a;
-  --tile-hover-bg: #e8b800;
-  --tile-hover-fg: #101010;
-  --glyph-color: #e8b800;
+@media (prefers-reduced-motion: reduce){
+  .specimen-glyph{ animation: none; }
 }
 
+/* ========== RIGHT: groups & tiles ========== */
+.charset__right{ display: grid; gap: clamp(20px, 3vw, 36px); }
 
-
-
-
-
-
-
-
-
-
-
-
-/* Weight controls */
-.controls{
-  display:flex; align-items:center; gap:12px;
-  font-family: var(--ui-sans, system-ui, sans-serif);
-  margin-bottom: clamp(12px, 2vw, 24px);
-}
-.controls input[type="range"]{ width: clamp(200px, 40vw, 480px); }
-.controls output{ min-width: 2ch; text-align: right; }
-
-/* Variable font hookup */
-:root{ --wght: 50; }
-.sample{
-  font-family:"BrasparzWeb",sans-serif;
-  font-variation-settings:"wght" var(--wght);
+.group{ display: grid; gap: 10px; }
+.group h4{
+  margin: 0 0 15px 0;
+  font: 450 16px/1 var(--ui-sans);
+  letter-spacing: .01em;     /* lighter tracking for lc headings */
+  text-transform: none;      /* "Uppercase" not ALL CAPS */
 }
 
-/* Display specimen */
-.specimen--display{
-  font-size: clamp(28px, 7vw, 84px);
-  line-height: .95;
+/* grid of tiles */
+.grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-size), 1fr));
+  gap: var(--tile-gap);
+}
+
+/* base tile (right grid only) */
+.charset__right .tile{
+  display: grid; place-items: center;
+  width: var(--tile-size); aspect-ratio: 1 / 1;
+  border-radius: var(--tile-corner);
+  background: var(--paper);                 /* same as page */
+  color: var(--ink);
+  border: 1.5px solid var(--tile-outline);  /* subtle fence */
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    background .14s ease,
+    color .14s ease,
+    border-color .14s ease,
+    box-shadow .14s ease;
+}
+
+/* glyph inside each tile */
+.charset__right .tile span{
+  font-family: "BrasparzWeb", system-ui, sans-serif;
+  font-size: 22px; line-height: 1;
+  transition: transform .12s ease;
+}
+
+/* hovered/focused tile uses the shared accent color */
+.charset__right .tile:hover,
+.charset__right .tile:focus-visible{
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--accent);
+  outline: none;
+}
+.charset__right .tile:hover span{ transform: translateY(-1px); }
+/* ----- knobs for the right grid spacing/size ----- */
+:root{
+  /* tile size scales with viewport; tweak to taste */
+  --tile: clamp(46px, 3.4vw, 58px);
+
+  /* independent gaps so you can tune the feel */
+  --tile-gap-x: clamp(8px, 1.8vw, 10px);
+  --tile-gap-y: clamp(8px, 1.4vw, 10px);
+
+  --tile-outline: #2F2C2C;
+}
+
+/* Right column grid: fixed squares with comfy gutters */
+.charset__right .grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--tile)); /* fixed tracks */
+  grid-auto-rows: var(--tile);                           /* fixed rows   */
+  justify-content: start;                                /* no stretching */
+  column-gap: var(--tile-gap-x);                         /* wider H gap  */
+  row-gap: var(--tile-gap-y);                            /* wider V gap  */
+  padding-block: 2px;                                    /* small air    */
+}
+
+/* Square tiles */
+.charset__right .tile{
+  inline-size: var(--tile);
+  block-size: var(--tile);
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border-color: #2F2C2C;
+  border: 2px solid var(--tile-outline);
+  border-radius: 3px;             /* ← 3px corners */
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .14s, color .14s, border-color .14s, box-shadow .14s;
+}
+
+
+/* Use system font; keep text truly centred */
+.charset__right .tile span{
+  display: block;
+  line-height: 1;
+  text-align: center;
+  font-family: var(--ui-sans, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Helvetica Neue", Arial, sans-serif);
+  font-weight: 600;
   letter-spacing: .01em;
-  margin-bottom: clamp(16px, 3vw, 36px);
+  font-size: calc(var(--tile) * .30);
 }
 
-/* Weight tiles */
-.weights-row{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-}
-.tile{
-  padding: 14px 16px; border:1px solid #ddd; border-radius: 12px; background:#fff;
-}
-.tile span{
-  display:block; font-family: var(--ui-sans, system-ui, sans-serif);
-  font-size: 12px; letter-spacing:.06em; text-transform:uppercase; opacity:.7;
-  margin-bottom: 6px;
-}
-.tile .sample{ font-variation-settings:"wght" var(--w); font-size: 36px; }
-
-/* Alphabet */
-.alpha-grid{
-  display:grid; gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}
-.alpha-grid .sample{ font-size: clamp(20px, 3.2vw, 34px); }
-
-/* Samples */
-.sample--h1{ font-size: clamp(28px, 6.6vw, 72px); }
-.sample--h2{ font-size: clamp(22px, 3.6vw, 44px); opacity:.9; }
-.sample--body{
-  font-size: clamp(16px, 2.2vw, 22px);
-  max-width: 60ch;
+/* Focus/hover only affects the tile under the pointer */
+.charset__right .tile:hover,
+.charset__right .tile:focus-visible{
+  background: var(--accent, var(--yellow));
+  color: var(--accent-fg, var(--ink));
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--accent, var(--yellow));
+  outline: none;
 }
 
-/* OpenType list */
-.features{
-  columns: 2; gap: 28px;
-  font-family: var(--ui-sans, system-ui, sans-serif);
-}
-.note{ font-family: var(--ui-sans, system-ui, sans-serif); opacity:.7; margin-top:8px; }
+
+
+
+
+
+
 
 /* Tester */
 #testerInput{

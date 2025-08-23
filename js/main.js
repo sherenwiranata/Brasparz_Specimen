@@ -261,42 +261,74 @@ new ResizeObserver(setNavH).observe(nav);
 
 
 
-// Make the reveal follow the cursor smoothly
 (() => {
-  const el = document.getElementById('alphaSpot');
-  let mx = 50, my = 50, tx = 50, ty = 50;
+  const spot  = document.getElementById('alphaSpot');
+  if (!spot) return;
+
+  // ---- 1) Maintain aspect-ratio from the image ----
+  const lower = spot.querySelector('.lower'); // use the image that defines layout
+  const upper = spot.querySelector('.upper');
+
+  function setSpotRatio(img){
+    const w = img?.naturalWidth, h = img?.naturalHeight;
+    if (w && h) spot.style.aspectRatio = `${w} / ${h}`;
+  }
+  [lower, upper].forEach(img => {
+    if (!img) return;
+    if (img.complete) setSpotRatio(img);
+    else img.addEventListener('load', () => setSpotRatio(img), { once: true });
+  });
+
+  // ---- 2) Smooth follow of the reveal center (CSS --mx / --my) ----
+  let mx = 50, my = 50;   // current (what we set)
+  let tx = 50, ty = 50;   // target (where the user pointed)
 
   function setFromEvent(e){
-    const r = el.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width  * 100;
-    const y = (e.clientY - r.top)  / r.height * 100;
+    const r = spot.getBoundingClientRect();
+    const p = e.touches ? e.touches[0] : e;
+    const x = ((p.clientX - r.left) / r.width)  * 100;
+    const y = ((p.clientY - r.top)  / r.height) * 100;
     tx = Math.max(0, Math.min(100, x));
     ty = Math.max(0, Math.min(100, y));
   }
 
-  el.addEventListener('pointermove', setFromEvent);
-  el.addEventListener('pointerdown', setFromEvent);
+  // Mouse + touch
+  spot.addEventListener('pointermove', setFromEvent, { passive: true });
+  spot.addEventListener('pointerdown', setFromEvent, { passive: true });
+  spot.addEventListener('touchmove',   setFromEvent, { passive: true });
+  spot.addEventListener('touchstart',  setFromEvent, { passive: true });
 
-  // gentle easing so it doesn’t feel “stiff”
+  // When leaving, drift back to center (your CSS :hover can still control --r)
+  spot.addEventListener('pointerleave', () => { tx = 50; ty = 50; }, { passive: true });
+
+  // Respect reduced motion: jump instead of lerp
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lerp = reduce ? 1 : 0.12;
+
   function tick(){
-    mx += (tx - mx) * 0.12;
-    my += (ty - my) * 0.12;
-    el.style.setProperty('--mx', mx.toFixed(2) + '%');
-    el.style.setProperty('--my', my.toFixed(2) + '%');
+    mx += (tx - mx) * lerp;
+    my += (ty - my) * lerp;
+    spot.style.setProperty('--mx', mx.toFixed(2) + '%');
+    spot.style.setProperty('--my', my.toFixed(2) + '%');
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+
+  // ---- 3) Optional keyboard control ----
+  spot.tabIndex = 0; // make focusable
+  spot.addEventListener('keydown', (e) => {
+    const step = e.shiftKey ? 5 : 2;
+    let handled = true;
+    switch (e.key) {
+      case 'ArrowLeft':  tx = Math.max(0,   tx - step); break;
+      case 'ArrowRight': tx = Math.min(100, tx + step); break;
+      case 'ArrowUp':    ty = Math.max(0,   ty - step); break;
+      case 'ArrowDown':  ty = Math.min(100, ty + step); break;
+      default: handled = false;
+    }
+    if (handled) e.preventDefault();
+  });
 })();
-const spot  = document.getElementById('alphaSpot');
-const lower = spot.querySelector('.lower');
-
-function setSpotRatio(){
-  const w = lower.naturalWidth, h = lower.naturalHeight;
-  if (w && h) spot.style.aspectRatio = `${w} / ${h}`;
-}
-lower.complete ? setSpotRatio() : lower.addEventListener('load', setSpotRatio);
-
-// (keep your existing pointer move code that updates --mx / --my)
 
 
 
@@ -304,203 +336,189 @@ lower.complete ? setSpotRatio() : lower.addEventListener('load', setSpotRatio);
 
 
 
-/* Glyphpanel: sticky preview + hover-to-preview + metrics-driven guides */
 (() => {
   const section = document.getElementById('charset');
   const right   = document.getElementById('charsetRight');
   const preview = document.getElementById('glyphPreview');
   const leftCol = document.querySelector('.charset__left');
-  const box     = preview ? preview.closest('.specimen-box') : null;
+  const box     = preview?.closest('.specimen-box');
 
-  if (!section || !right || !preview || !leftCol || !box) {
-    console.warn('[glyphpanel] Missing required elements (#charset, #charsetRight, #glyphPreview, .charset__left, .specimen-box).');
-    return;
-  }
+  if (!section || !right || !preview || !leftCol || !box) return;
 
-  /* -------------------- preview + lock logic -------------------- */
-  const groups = [];                // [{title, chars, feature, startEl, endEl}]
-  let lockedIdx  = 0;
-  let lockedChar = 'A';
-  let lockedFeat = 'normal';
-  let lastScrollY = window.scrollY;
+  /* ===== helpers ===== */
+  const COLORS = [
+    {bg:'#D33A2C', border:'#BE2F23'}, // red
+    {bg:'#0B61C6', border:'#094FA4'}, // blue
+    {bg:'#E2B100', border:'#C89B08'}  // yellow
+  ];
+  const rand = (n) => Math.floor(Math.random() * n);
+  const setPreviewColors = () => {
+    const c = COLORS[rand(COLORS.length)];
+    box.style.setProperty('--specimen-bg', c.bg);
+    box.style.borderColor = c.border;
+    // also tint guide line color a touch toward the border
+    box.style.setProperty('--tile-border', c.border + 'cc');
+  };
 
-  function updatePreview(char, featToken){
+  /* ===== preview update (called on hover/focus/click) ===== */
+  let activeFeat = 'normal';
+  function updatePreview(char, featToken = 'normal'){
     preview.textContent = char;
-    preview.style.fontFeatureSettings = featToken || 'normal';
-    // re-sync guide lines to this font/weight/feature
+    activeFeat = featToken;
+    preview.style.fontFeatureSettings = featToken;
+    setPreviewColors();
     if (window.__updateSpecimenGuides) window.__updateSpecimenGuides();
   }
 
-  function lockToGroup(i){
-    lockedIdx = Math.max(0, Math.min(i, groups.length - 1));
-    const g = groups[lockedIdx];
-    lockedChar = g.chars[0] || '•';
-    lockedFeat = g.feature || 'normal';
-    updatePreview(lockedChar, lockedFeat);
-  }
-
-  function revertToLock(){ updatePreview(lockedChar, lockedFeat); }
-
-  // helper to build a group
+  /* ===== build groups/tiles ===== */
+  const groups = [];
   function addGroup({ title, chars, feature }) {
     const group = document.createElement('div');
     group.className = 'group';
     group.innerHTML = `<h4>${title}</h4><div class="grid"></div>`;
     const grid = group.querySelector('.grid');
-
     const featToken = feature || 'normal';
 
-    // tiles
     [...chars].forEach(ch => {
       const cell = document.createElement('button');
       cell.className = 'tile';
       cell.type = 'button';
-      cell.style.setProperty('--feat', featToken);
       cell.innerHTML = `<span>${ch}</span>`;
-      // hover/focus preview (temporary)
       cell.addEventListener('pointerenter', () => updatePreview(ch, featToken));
       cell.addEventListener('focus',        () => updatePreview(ch, featToken));
-      cell.addEventListener('click',        () => updatePreview(ch, featToken)); // touch
+      cell.addEventListener('click',        () => updatePreview(ch, featToken));
       grid.appendChild(cell);
     });
 
-    // sentinels: start (for scrolling up), end (for scrolling down)
+    // sentinels for sticky lock
     const start = document.createElement('div');
     start.className = 'group-sentinel start';
-    start.style.height = '1px';
-    start.style.marginTop = '-1px';
+    start.style.cssText = 'height:1px;margin-top:-1px;';
     start.dataset.type = 'start';
     start.dataset.idx  = groups.length;
 
     const end = document.createElement('div');
     end.className = 'group-sentinel end';
-    end.style.height = '1px';
-    end.style.marginBottom = '-1px';
+    end.style.cssText = 'height:1px;margin-bottom:-1px;';
     end.dataset.type = 'end';
     end.dataset.idx  = groups.length;
 
     group.prepend(start);
     group.appendChild(end);
     right.appendChild(group);
-
     groups.push({ title, chars, feature: featToken, startEl: start, endEl: end });
   }
 
-  /* -------------------- build your groups -------------------- */
   const UC   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const LC   = "abcdefghijklmnopqrstuvwxyz";
   const NUM  = "0123456789";
   const PUNC = "!?,.;:–—()[]{}'\"/@#$%&*+=<>^~•…";
 
-  addGroup({ title: "Uppercase",                   chars: UC });
-  addGroup({ title: "Lowercase",                   chars: LC });
-  addGroup({ title: "Numbers",                     chars: NUM });
-  addGroup({ title: "Punctuation",                 chars: PUNC });
+  addGroup({ title:"Uppercase", chars:UC });
+  addGroup({ title:"Lowercase", chars:LC });
+  addGroup({ title:"Numbers",   chars:NUM });
+  addGroup({ title:"Punctuation", chars:PUNC });
 
-  // Alternates / stylistic sets — change tags to match your font
-  addGroup({ title: "Uppercase — Stylistic Set 1", chars: UC, feature: '"ss01" 1' });
-  addGroup({ title: "Lowercase — Stylistic Set 1", chars: LC, feature: '"ss01" 1' });
-  addGroup({ title: "Initial Uppercase (init)",    chars: UC, feature: '"init" 1' });
-  addGroup({ title: "Initial Uppercase — SS1",     chars: UC, feature: '"init" 1, "ss01" 1' });
+  // stylistic sets (adjust to your font)
+  addGroup({ title:"Uppercase — SS01", chars:UC, feature:'"ss01" 1' });
+  addGroup({ title:"Lowercase — SS01", chars:LC, feature:'"ss01" 1' });
 
-  // Lock to first group initially
-  lockToGroup(0);
+  // initial lock
+  updatePreview('A', 'normal');
 
-  // Revert to locked glyph when leaving the right column
-  right.addEventListener('pointerleave', revertToLock);
-  right.addEventListener('focusout', (e) => { if (!right.contains(e.relatedTarget)) revertToLock(); });
-
-  // IntersectionObserver to advance lock only when a group's END passes the sticky line
+  /* ===== sticky “lock to group when its end crosses” ===== */
+  let lastScrollY = window.scrollY;
+  let lockedIdx = 0;
+  function lockToGroup(i){
+    lockedIdx = Math.max(0, Math.min(i, groups.length-1));
+    const g = groups[lockedIdx];
+    updatePreview(g.chars[0] || '•', g.feature || 'normal');
+  }
   const stickyTop = parseFloat(getComputedStyle(leftCol).top) || 0;
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const idx  = +entry.target.dataset.idx;
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      const idx = +entry.target.dataset.idx;
       const type = entry.target.dataset.type;
-      const scrollingDown = window.scrollY > lastScrollY;
+      const down = window.scrollY > lastScrollY;
       lastScrollY = window.scrollY;
-
       if (!entry.isIntersecting) return;
-
-      if (type === 'end' && scrollingDown) {
-        lockToGroup(Math.min(idx + 1, groups.length - 1));
-      }
-      if (type === 'start' && !scrollingDown) {
-        lockToGroup(idx);
-      }
+      if (type==='end' && down)  lockToGroup(Math.min(idx+1, groups.length-1));
+      if (type==='start' && !down) lockToGroup(idx);
     });
-  }, {
-    root: null,
-    threshold: 0,
-    rootMargin: `-${stickyTop}px 0px 0px 0px` // trigger at the sticky line
+  }, { root:null, threshold:0, rootMargin:`-${stickyTop}px 0px 0px 0px` });
+  groups.forEach(g=>{ io.observe(g.startEl); io.observe(g.endEl); });
+
+  right.addEventListener('pointerleave', ()=>lockToGroup(lockedIdx));
+  right.addEventListener('focusout', e=>{
+    if(!right.contains(e.relatedTarget)) lockToGroup(lockedIdx);
   });
 
-  groups.forEach(g => { io.observe(g.startEl); io.observe(g.endEl); });
+  /* ===== animated weights: 0 → 20 → 50 → 75 → 100 → 75 → 50 → 20 → … ===== */
+  const seq = [0,20,50,75,100,75,50,20];
+  let wi = 0, timer = null;
 
-  /* -------------------- metrics-driven guide lines -------------------- */
-  async function fontsReady(){
-    if (document.fonts && document.fonts.ready) {
-      try { await document.fonts.ready; } catch(_) {}
-    }
+  function stepWeight(){
+    const w = seq[wi];
+    preview.style.setProperty('--wght', w);
+    // keep active features applied
+    preview.style.fontFeatureSettings = activeFeat;
+    if (window.__updateSpecimenGuides) window.__updateSpecimenGuides();
+    wi = (wi + 1) % seq.length;
   }
 
-  // Canvas measurement for ascent/descent
+  function startAnim(){ if (!timer) timer = setInterval(stepWeight, 380); }
+  function stopAnim(){ clearInterval(timer); timer = null; }
+  startAnim();
+  document.addEventListener('visibilitychange', () => {
+    document.hidden ? stopAnim() : startAnim();
+  });
+
+  /* ===== metrics-driven guides (same idea as yours) ===== */
+  async function fontsReady(){
+    if (document.fonts && document.fonts.ready) { try{ await document.fonts.ready; }catch{} }
+  }
   function measureGlyph(text, fontCSS){
     const c = document.createElement('canvas');
     const ctx = c.getContext('2d');
-    ctx.font = fontCSS;                 // e.g., "400 200px BrasparzWeb"
+    ctx.font = fontCSS;
     const m = ctx.measureText(text);
-    return {
-      asc:  m.actualBoundingBoxAscent  || 0,
-      desc: m.actualBoundingBoxDescent || 0
-    };
+    return { asc: m.actualBoundingBoxAscent||0, desc: m.actualBoundingBoxDescent||0 };
   }
-
   function currentCanvasFont(){
     const cs = getComputedStyle(preview);
-    // Build "<weight> <size> <family>" for canvas.
-    // Size large for precision; weight maps to 'wght' for most variable fonts.
-    const size   = '200px';
+    const size = '200px';
     const weight = cs.fontWeight || '400';
     const family = cs.fontFamily || 'sans-serif';
     return `${weight} ${size} ${family}`;
   }
-
   function setGuideVars({ ascTop, xTop, baseTop, descTop }){
-    box.style.setProperty('--asc-y',  `${ascTop.toFixed(2)}%`);
-    box.style.setProperty('--xh-y',   `${xTop.toFixed(2)}%`);
+    box.style.setProperty('--asc-y', `${ascTop.toFixed(2)}%`);
+    box.style.setProperty('--xh-y', `${xTop.toFixed(2)}%`);
     box.style.setProperty('--base-y', `${baseTop.toFixed(2)}%`);
     box.style.setProperty('--desc-y', `${descTop.toFixed(2)}%`);
   }
-
   async function syncGuides(){
     await fontsReady();
-
     const fontCSS = currentCanvasFont();
-    // Representative glyphs
-    const cap = measureGlyph('H', fontCSS);   // cap height
-    const asc = measureGlyph('h', fontCSS);   // ascender
-    const x   = measureGlyph('x', fontCSS);   // x-height
-    const d   = measureGlyph('p', fontCSS);   // descender
-
-    // total box = tallest ascent to baseline + largest descent
+    const cap = measureGlyph('H', fontCSS);
+    const asc = measureGlyph('h', fontCSS);
+    const x   = measureGlyph('x', fontCSS);
+    const d   = measureGlyph('p', fontCSS);
     const ascent  = Math.max(cap.asc, asc.asc, x.asc);
     const descent = Math.max(d.desc, 0);
     const total   = ascent + descent || 1;
-
-    // Convert to percentage positions from top of the box
     const ascTop  = (ascent - asc.asc) / total * 100;
     const xTop    = (ascent - x.asc)   / total * 100;
     const baseTop =  ascent            / total * 100;
     const descTop = (ascent + d.desc)  / total * 100;
-
     setGuideVars({ ascTop, xTop, baseTop, descTop });
   }
-
-  window.addEventListener('load',   syncGuides);
+  window.addEventListener('load', syncGuides);
   window.addEventListener('resize', syncGuides);
-  // expose a hook if you change weight via UI elsewhere
   window.__updateSpecimenGuides = syncGuides;
 })();
+
+  
 
 
 

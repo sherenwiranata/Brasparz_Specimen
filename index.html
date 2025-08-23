@@ -112,14 +112,26 @@
 <section class="section section--glyphs">
   <div class="container">
     <div id="charset" class="charset">
+
       <!-- LEFT: sticky preview -->
-     <div class="charset__left">
-  <div class="specimen-box">
-    <div id="glyphPreview" class="specimen-glyph" aria-live="polite">A</div>
-  </div>
-</div>
-      <!-- RIGHT: groups render here via JS -->
+      <div class="charset__left">
+        <div class="specimen-box" style="--msg-color:#2F2C2C;">
+          <!-- live glyph -->
+          <div id="glyphPreview" class="specimen-glyph" aria-live="polite">A</div>
+
+          <!-- video shown for unsupported web features -->
+          <video id="glyphVideo" class="specimen-video is-hidden" playsinline muted loop></video>
+
+          <!-- message overlay (auto-hides after 3s) -->
+          <div id="glyphMsg" class="specimen-msg is-hidden">
+            Not supported on web — showing a video instead
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: grids rendered by JS -->
       <div class="charset__right" id="charsetRight"></div>
+
     </div>
   </div>
 </section>

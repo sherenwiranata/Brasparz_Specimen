@@ -339,11 +339,13 @@ new ResizeObserver(setNavH).observe(nav);
   const section = document.getElementById('charset');
   const right   = document.getElementById('charsetRight');
   const preview = document.getElementById('glyphPreview');
+  const videoEl = document.getElementById('glyphVideo');
+  const msgEl   = document.getElementById('glyphMsg');
   const leftCol = document.querySelector('.charset__left');
   const box     = preview?.closest('.specimen-box');
-  if (!section || !right || !preview || !leftCol || !box) return;
+  if (!section || !right || !preview || !leftCol || !box || !videoEl || !msgEl) return;
 
-  /* ---------- Left/Right accent color sync ---------- */
+  /* ---------- Accent color sync (random each hover) ---------- */
   const COLORS = [
     { bg:'#D33A2C', border:'#BE2F23' }, // red
     { bg:'#0B61C6', border:'#094FA4' }, // blue
@@ -352,77 +354,111 @@ new ResizeObserver(setNavH).observe(nav);
   const rand = n => Math.floor(Math.random() * n);
   function setPreviewColors(){
     const c = COLORS[rand(COLORS.length)];
-    // left specimen tile
     box.style.setProperty('--specimen-bg', c.bg);
     box.style.borderColor = c.border;
-    // right-grid hover accent (your CSS reads --accent / --accent-fg)
     section.style.setProperty('--accent', c.bg);
     section.style.setProperty('--accent-fg', 'var(--ink)');
   }
 
-  /* ---------- preview update ---------- */
+  /* ---------- Which groups use video instead of live glyph ---------- */
+  const VIDEO_SOURCES = {
+    'Initial Uppercase':                     'assets/video/InitialUppercase.mp4',
+    'Initial Uppercase — Alternates & SS':   'assets/video/InitialUpperCasesAlternates.mp4'
+  };
+
+  /* ---------- Show glyph / Show video helpers ---------- */
   let activeFeat = 'normal';
-  function updatePreview(text, featToken = 'normal'){
-    preview.textContent = text;
-    activeFeat = featToken;
-    preview.style.fontFeatureSettings = featToken;
-    setPreviewColors();
-    if (window.__updateSpecimenGuides) window.__updateSpecimenGuides();
+  let msgTimer = null;
+
+  function hideVideoUI(){
+    // stop message & video UI, but don't touch glyph
+    clearTimeout(msgTimer);
+    msgTimer = null;
+    msgEl.classList.add('is-hidden');
+    videoEl.pause();
+    videoEl.classList.add('is-hidden');
   }
 
-  /* ================= Data ================= */
-  // Core sets
+  function showGlyph(text, feat = 'normal'){
+    hideVideoUI();
+    preview.classList.remove('is-hidden');
+    preview.textContent = text;
+    activeFeat = feat;
+    preview.style.fontFeatureSettings = feat;
+    setPreviewColors();
+  }
+
+  function showVideoFor(groupTitle){
+    const src = VIDEO_SOURCES[groupTitle];
+    if (!src) return false;
+
+    // swap to video
+    preview.classList.add('is-hidden');
+    videoEl.classList.remove('is-hidden');
+
+    // message: show then auto-hide after 3s (video keeps looping)
+    clearTimeout(msgTimer);
+    msgEl.classList.remove('is-hidden');
+    msgTimer = setTimeout(() => {
+      msgEl.classList.add('is-hidden');
+    }, 3000);
+
+    // prepare video
+    videoEl.muted = true;
+    videoEl.loop = true;
+    videoEl.playsInline = true;
+    // only reload if changed to avoid stutter
+    const abs = new URL(src, location.href).href;
+    if (videoEl.src !== abs) {
+      videoEl.src = src;
+      videoEl.load();
+    }
+    // play (handle autoplay promises quietly)
+    const tryPlay = () => videoEl.play().catch(()=>{ /* ignore */ });
+    if (videoEl.readyState >= 3) {
+      tryPlay();
+    } else {
+      const onCanPlay = () => { tryPlay(); videoEl.removeEventListener('canplay', onCanPlay); };
+      videoEl.addEventListener('canplay', onCanPlay);
+    }
+
+    // still randomize the accent to match your behavior
+    setPreviewColors();
+    return true;
+  }
+
+  function handleHover(groupTitle, txt, feat){
+    if (VIDEO_SOURCES[groupTitle]) {
+      showVideoFor(groupTitle);
+    } else {
+      showGlyph(txt, feat);
+    }
+  }
+
+  /* ================= Data (same as your working sets) ================= */
   const UC   = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
   const LC   = [..."abcdefghijklmnopqrstuvwxyz"];
   const NUM  = [..."0123456789"];
-  const PUNC = ["!","?",",",".",";",";",":","–","—","(",")","'","\"", "\\","/","%","&"];
+  const PUNC = [..."!?,.;:–—()'\"/%&"];
 
-  // Initial Uppercase (all caps) — uses TITL
-  const INIT_UC = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
-
-  // Initial Uppercase — Alternates & SS (subset from your specimen row)
-  // A, E, C, G, I, M, O, R, S, T, W
-  const INIT_UC_SS = [..."AECGIMORSTW"];
-
-  // Per-letter features for that row:
-  // E/R/T worked for you with AALT+SS01; the rest: TITL+SS01
-  const INIT_UC_SS_ITEMS = INIT_UC_SS.map(ch => {
-    const perLetter = {
-      E: '"aalt" 1, "ss01" 1',
-      R: '"aalt" 1, "ss01" 1',
-      T: '"aalt" 1, "ss01" 1',
-      A: '"titl" 1, "ss01" 1',
-      C: '"titl" 1, "ss01" 1',
-      G: '"titl" 1, "ss01" 1',
-      I: '"titl" 1, "ss01" 1',
-      M: '"titl" 1, "ss01" 1',
-      O: '"titl" 1, "ss01" 1',
-      S: '"titl" 1, "ss01" 1',
-      W: '"titl" 1, "ss01" 1'
-    };
-    return { txt: ch, feat: perLetter[ch] || '"aalt" 1, "ss01" 1' };
-  });
-
-  // Uppercase — Alternates & Stylistic Sets (keep as-is)
-  const UC_SS = [..."AEGIMORSTWD"];     // keep your existing good set
-
-  // Lowercase — Alternates & SS (keep ss01 set, plus ss02 m/n duplicates)
-  const LC_SS01 = [..."abdemnrwy"];
+  const UC_SS = [..."AEGIMORSTWD"];               // keep
+  const LC_SS01 = [..."abdemnrwy"];               // keep (ss01)
   const LC_SS_ITEMS = [
     ...LC_SS01.map(ch => ({ txt: ch, feat: '"ss01" 1' })),
-    { txt: 'm', feat: '"ss02" 1' },
+    { txt: 'm', feat: '"ss02" 1' },               // extra ss02 variants in same grid
     { txt: 'n', feat: '"ss02" 1' }
   ];
 
-  // Ligatures (unchanged)
-  const LIGAS = ["ff","fi","fl","ft","ss","OO"];
+  const LIGAS = ["ff","fi","fl","ft","ss","OO"];  // keep
 
-  /* =============== Flexible group builder =============== */
+  // We keep tiles for the two “Initial…” groups so the grid looks consistent,
+  // but hovering them will play video instead of showing a live glyph.
+  const INIT_UC     = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"]; // shown via video on hover
+  const INIT_UC_SS  = [..."AECGIMORSTW"];               // shown via video on hover
+
+  /* ================= Builder ================= */
   const groups = []; // for sticky lock
 
-  // Accepts either:
-  // - chars: "ABC" -> single feature for all tiles
-  // - items: [{txt:'m', feat:'"ss01" 1'}, ...] -> per-tile features
   function addGroup({ title, chars, items, feature }) {
     const tiles = items
       ? items.map(it => (typeof it === 'string' ? ({ txt: it, feat: feature || 'normal' }) : it))
@@ -438,13 +474,13 @@ new ResizeObserver(setNavH).observe(nav);
       cell.className = 'tile';
       cell.type = 'button';
       cell.innerHTML = `<span>${txt}</span>`;
-      cell.addEventListener('pointerenter', () => updatePreview(txt, feat));
-      cell.addEventListener('focus',        () => updatePreview(txt, feat));
-      cell.addEventListener('click',        () => updatePreview(txt, feat));
+      cell.addEventListener('pointerenter', () => handleHover(title, txt, feat));
+      cell.addEventListener('focus',        () => handleHover(title, txt, feat));
+      cell.addEventListener('click',        () => handleHover(title, txt, feat));
       grid.appendChild(cell);
     });
 
-    // Sentinels for sticky lock
+    // Sticky sentinels
     const start = document.createElement('div');
     start.className = 'group-sentinel start';
     start.style.cssText = 'height:1px;margin-top:-1px;';
@@ -471,20 +507,28 @@ new ResizeObserver(setNavH).observe(nav);
   addGroup({ title: "Numbers",     chars: NUM });
   addGroup({ title: "Punctuation", chars: PUNC });
 
-  // (unchanged) Uppercase — Alternates & Stylistic Sets
+ addGroup({
+  title: "Initial Uppercase (TITL)",
+  chars: INIT_UC,
+  feature: '"titl" 1'
+});
+
+  addGroup({ title: "Initial Uppercase — Alternates & SS", chars: INIT_UC_SS, feature: 'normal' }); // hover plays video
+
   addGroup({ title: "Uppercase — Alternates & Stylistic Sets", chars: UC_SS, feature: '"ss01" 1' });
-
-  // (unchanged) Lowercase — Alternates & Stylistic Sets (+ m/n ss02 duplicates)
   addGroup({ title: "Lowercase — Alternates & Stylistic Sets", items: LC_SS_ITEMS });
-
-  // (unchanged) Ligatures
   addGroup({ title: "Ligatures", items: LIGAS, feature: '"liga" 1, "dlig" 1' });
 
   /* ------------- Initial preview + sticky lock ------------- */
   function lockToGroup(i){
     const idx = Math.max(0, Math.min(i, groups.length - 1));
     const g = groups[idx];
-    updatePreview(g.firstText, g.firstFeat);
+    // When locking to a video group, show the video immediately; otherwise show glyph
+    if (VIDEO_SOURCES[g.title]) {
+      showVideoFor(g.title);
+    } else {
+      showGlyph(g.firstText, g.firstFeat);
+    }
     lockedIdx = idx;
   }
   let lockedIdx = 0;
@@ -508,7 +552,7 @@ new ResizeObserver(setNavH).observe(nav);
   right.addEventListener('pointerleave', ()=>lockToGroup(lockedIdx));
   right.addEventListener('focusout', e => { if (!right.contains(e.relatedTarget)) lockToGroup(lockedIdx); });
 
-  /* -------- Variable weight “breathing” animation -------- */
+  /* -------- Optional: variable weight “breathing” -------- */
   const seq = [0,20,50,75,100,75,50,20];
   let wi = 0, timer = null;
   function stepWeight(){
@@ -521,6 +565,8 @@ new ResizeObserver(setNavH).observe(nav);
   startAnim();
   document.addEventListener('visibilitychange', () => document.hidden ? stopAnim() : startAnim());
 })();
+
+
 
 
   

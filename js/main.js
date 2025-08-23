@@ -218,6 +218,14 @@ new ResizeObserver(setNavH).observe(nav);
 })();
 
 
+(function () {
+  const v = document.getElementById('brasparzModularity');
+  if (!v) return;
+  const setRate = () => { v.defaultPlaybackRate = 1.5; v.playbackRate = 1.5; };
+  if (v.readyState >= 1) setRate();
+  else v.addEventListener('loadedmetadata', setRate, { once: true });
+  v.play().catch(()=>{});
+})();
 
 
 // ********************************* UI hookups for specimen page *****************************

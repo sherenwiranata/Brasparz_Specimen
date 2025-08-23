@@ -299,8 +299,8 @@ body:not(.app-on) .topnav { display: none; }
 /* Reusable container: nav + all sections use this */
 .container,
 .topnav__inner{
-  width: min(var(--page-max), 100% - 2 * var(--page-pad));
-  margin-inline: auto;                        /* centers the line */
+  width: min(var(--page-max), calc(100% - 2 * var(--page-pad)));
+  margin-inline: auto;
 }
 
 /* ===== Top Nav (no more hard-coded gaps/widths) ===== */
@@ -395,6 +395,17 @@ body:not(.app-on) .topnav { display: none; }
 
 
 
+.section--modularity { background: var(--bg); } /* optional, matches page */
+.modularity-video{
+  margin: 0;
+  overflow: hidden;
+}
+.modularity-video > video{
+  display: block;
+  width: 100%;
+  height: auto;                  /* keeps the container’s gutters */
+  object-fit: cover;             /* or 'contain' if you never want cropping */
+}
 
 
 
@@ -545,6 +556,7 @@ body:not(.app-on) .topnav { display: none; }
   --page-max: 1740px;
   --page-pad: clamp(20px, 6.5vw, 96px);
 }
+
 
 *,*::before,*::after{ box-sizing: border-box; }
 

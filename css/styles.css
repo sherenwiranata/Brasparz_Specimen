@@ -961,10 +961,16 @@ body:not(.app-on) .topnav { display: none; }
   --grain-opacity: .25;     /* tune .12 – .24 */
 }
 
-/* make each big block its own blend stack */
-.section,
-.topnav{ position: relative; isolation: isolate; }
+/* keep sections as their own blend stacks */
+.section{ position: relative; isolation: isolate; }
 
+/* sticky nav again */
+.topnav{
+  position: sticky;   /* restore */
+  top: 0;
+  z-index: 7;
+  isolation: isolate; /* you can still keep the isolate */
+}
 /* grain sits on top of each block’s contents */
 .section::after,
 .topnav::after{

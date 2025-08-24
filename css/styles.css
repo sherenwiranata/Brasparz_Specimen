@@ -946,32 +946,15 @@ body:not(.app-on) .topnav { display: none; }
   padding-bottom: clamp(8px, 1.4vw, 16px);
 }
 
-
-
-/* ===== Grain overlay (file-based, fast) ===== */
-:root{
-  --grain-opacity: .20;      /* stronger? try .28 to check */
-  --grain-size: 140px;       /* smaller = finer grain */
-  --grain-src: url("../assets/img/noise.svg");
-}
-/* ===== Site-wide grain (section overlay) ===== */
 :root{
   --grain-src: url("../assets/img/noise.svg");
-  --grain-size: 140px;      /* smaller = finer */
-  --grain-opacity: .25;     /* tune .12 – .24 */
+  --grain-size: 140px;
+  --grain-opacity: .10;          /* a hair lighter */
+  --grain-blend: soft-light;     /* try: soft-light (neutral) or overlay */
+  /* --grain-blend: normal;      /* use this if you want zero blending, just opacity */
 }
 
-/* keep sections as their own blend stacks */
-.section{ position: relative; isolation: isolate; }
-
-/* sticky nav again */
-.topnav{
-  position: sticky;   /* restore */
-  top: 0;
-  z-index: 7;
-  isolation: isolate; /* you can still keep the isolate */
-}
-/* grain sits on top of each block’s contents */
+/* site-wide grain */
 .section::after,
 .topnav::after{
   content:"";
@@ -979,47 +962,16 @@ body:not(.app-on) .topnav { display: none; }
   background-image: var(--grain-src);
   background-size: var(--grain-size) var(--grain-size);
   opacity: var(--grain-opacity);
-  mix-blend-mode: multiply;
-  z-index: 1;                     /* below any z-indexed overlays inside */
+  mix-blend-mode: var(--grain-blend);
+  z-index: 1;
 }
 
-/* hero already has a grain node; keep it for consistency */
+/* hero grain */
 .landing-hero .grain-overlay{
   position:absolute; inset:0; pointer-events:none; z-index:2;
   background-image: var(--grain-src);
   background-size: var(--grain-size) var(--grain-size);
   opacity: var(--grain-opacity);
-  mix-blend-mode: multiply;
+  mix-blend-mode: var(--grain-blend);
 }
-
-/* remove per-card grains so we don’t double-stack */
-.modularity-video::before,
-.modularity-video::after,
-.dm-card::before,
-.dm-card::after{
-  content: none !important;
-}
-
-
-/* -- fix: no grain/wash on the modularity figure -- */
-.modularity-video::before,
-.modularity-video::after{
-  content: none !important;      /* remove those overlays only here */
-}
-
-/* match page tone under/around the video */
-.modularity-video{ background: transparent; }
-.modularity-video > video{
-  background: var(--paper);      /* fills any letterbox edges */
-  display: block;
-}
-
-:root{ --wash-opacity: 0; }         /* try .04–.06 to unify clips */
-.section::before{
-  content:"";
-  position:absolute; inset:0; pointer-events:none;
-  background: rgba(244,239,228,var(--wash-opacity)); /* your --bg tone */
-  mix-blend-mode: multiply;
-}
-
 

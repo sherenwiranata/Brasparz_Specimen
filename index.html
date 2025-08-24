@@ -154,72 +154,52 @@
   </div>
 </section>
 
-<!-- Deco City mosaic -->
-<section id="deco-mosaic" class="section section--deco-mosaic">
+
+
+
+<section id="deco-mosaic" class="section">
   <div class="container">
-    <div class="mosaic">
-      <!-- top-left: true square video -->
-      <figure class="card card--sq is-video">
-        <video id="decoVideo"
-               src="assets/video/decocity.mp4"
-               autoplay muted loop playsinline></video>
+    <div class="dm-grid">
+      <!-- LEFT: video card -->
+      <figure class="dm-card is-video">
+        <video
+          src="assets/video/decocity.mp4"
+          autoplay
+          muted
+          loop
+          playsinline
+        ></video>
       </figure>
 
-      <!-- top-right: taller, tighter poster -->
-      <figure class="card card--tall">
-        <img src="assets/img/add.png" alt="Deco City address">
-      </figure>
-
-      <!-- bottom-left: “squarish” (slightly wide) -->
-      <figure class="card card--sqish">
-        <img src="assets/img/visit.png" alt="Come Visit">
-      </figure>
-
-      <!-- bottom-right: clearly wide rectangle -->
-      <figure class="card card--wide">
-        <img src="assets/img/car.png" alt="Car">
+      <!-- RIGHT: PNG card -->
+      <figure class="dm-card is-poster">
+        <img
+          src="assets/img/add.png"
+          alt="Deco City poster"
+          loading="lazy"
+        />
       </figure>
     </div>
   </div>
 </section>
 
 
+<section id="deco-duo" class="section">
+  <div class="container">
+    <div class="dm2-grid">
+      <!-- LEFT: visit -->
+      <figure class="dm-card">
+        <img src="assets/img/visit.png" alt="Come Visit poster" loading="lazy">
+      </figure>
 
-
-
-
-
-  <!-- OpenType -->
-  <section id="opentype" class="section">
-    <div class="container">
-      <h2 class="eyebrow">OpenType Features</h2>
-      <ul class="features">
-        <li>Figures: proportional / tabular</li>
-        <li>Fractions: ½ ¾ ⅛</li>
-        <li>Ligatures: ff fi fl</li>
-        <li>Stylistic alternates &amp; initial caps</li>
-      </ul>
-      <p class="note">If your build is a trial, show these as static images or overlays.</p>
+      <!-- RIGHT: car -->
+      <figure class="dm-card">
+        <img src="assets/img/car.png" alt="Car poster" loading="lazy">
+      </figure>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Tester -->
-  <section id="tester" class="section">
-    <div class="container">
-      <h2 class="eyebrow">Type Tester</h2>
-      <textarea id="testerInput" rows="2">Brasparz never fears ornaments.</textarea>
-      <div id="testerSample" class="sample specimen specimen--display"></div>
-    </div>
-  </section>
-
-  <footer class="section footer">
-    <div class="container">
-      <p>Thank you for visiting the city. © Charlie Le Maignan</p>
-    </div>
-  </footer>
-</main>
-
-</div>
 
   <!-- JS (simple non-module setup) -->
   <script src="js/utilities.js"></script>

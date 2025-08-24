@@ -582,16 +582,17 @@ new ResizeObserver(setNavH).observe(nav);
 
 
 
+  (() => {
+    const v = document.querySelector('#deco-mosaic .is-video video');
+    if (!v) return;
+    const setRate = () => { v.playbackRate = 1.0; v.defaultPlaybackRate = 1.0; };
+    if (v.readyState >= 1) setRate(); else v.addEventListener('loadedmetadata', setRate, {once:true});
+    v.play().catch(()=>{});
+  })();
 
 
-(() => {
-  const v = document.getElementById('decoVideo');
-  if (!v) return;
-  const setRate = () => { v.defaultPlaybackRate = 1.25; v.playbackRate = 1.25; };
-  if (v.readyState >= 1) setRate();
-  else v.addEventListener('loadedmetadata', setRate, { once: true });
-  v.play().catch(()=>{ /* muted should allow autoplay */ });
-})();
+
+
 
 
 

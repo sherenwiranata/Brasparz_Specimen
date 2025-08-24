@@ -182,9 +182,6 @@
       await sleep(GAP);
     }
 
-    // clear spotlight + overlay
-    document.body.classList.remove('spot-on','spot-fixed');
-    spotlightLocked = false;
 
     document.body.classList.remove('spot-on','spot-fixed');
     spotlightLocked = false;
@@ -218,14 +215,34 @@ new ResizeObserver(setNavH).observe(nav);
 })();
 
 
-(function () {
-  const v = document.getElementById('brasparzModularity');
-  if (!v) return;
-  const setRate = () => { v.defaultPlaybackRate = 1.5; v.playbackRate = 1.5; };
-  if (v.readyState >= 1) setRate();
-  else v.addEventListener('loadedmetadata', setRate, { once: true });
-  v.play().catch(()=>{});
+// Pause/resume only the Deco City card video.
+// Keep the modularity video playing always.
+(function autoVideo(){
+  // 1) ALWAYS-ON: modularity section
+  const mod = document.getElementById('brasparzModularity');
+  if (mod) {
+    mod.preload = 'auto';                 // fine to keep decoding
+    // make sure it resumes after tab switches
+    const ensurePlay = () => mod.play().catch(()=>{});
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) ensurePlay();
+    });
+    ensurePlay();
+  }
+
+  // 2) AUTO-PAUSE: only the Deco City mosaic video
+  const deco = document.querySelector('#deco-mosaic .is-video video');
+  if (deco) {
+    deco.preload = 'metadata';
+    const play = () => deco.play().catch(()=>{});
+    const stop = () => deco.pause();
+    const io = new IntersectionObserver(([e]) => {
+      e.isIntersecting ? play() : stop();
+    }, { threshold: 0.25 });
+    io.observe(deco);
+  }
 })();
+
 
 
 // ********************************* UI hookups for specimen page *****************************
@@ -573,6 +590,15 @@ new ResizeObserver(setNavH).observe(nav);
   startAnim();
   document.addEventListener('visibilitychange', () => document.hidden ? stopAnim() : startAnim());
 })();
+// Pause the weight animation when offscreen
+(() => {
+  const sec = document.getElementById('weights');
+  if (!sec) return;
+  const io = new IntersectionObserver(([e])=>{
+    if (e.isIntersecting) startAnim(); else stopAnim();
+  }, { threshold: 0 });
+  io.observe(sec);
+})();
 
 
 
@@ -592,18 +618,6 @@ new ResizeObserver(setNavH).observe(nav);
 
 
 
-
-
-
-
-// tester
-const tIn  = document.getElementById('testerInput');
-const tOut = document.getElementById('testerSample');
-if (tIn && tOut){
-  const sync = () => tOut.textContent = tIn.value;
-  tIn.addEventListener('input', sync);
-  sync();
-}
 
 // scroll-spy for the top nav
 const links = Array.from(document.querySelectorAll('.topnav a'));

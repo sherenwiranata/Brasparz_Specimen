@@ -630,7 +630,7 @@ body:not(.app-on) .topnav { display: none; }
   --stick-top: calc(var(--nav-h) + var(--stick-gap));
 
   /* palette */
-  --paper: #f6f1e6;
+  --paper: #f4efe4;
   --ink:   #2F2C2C;
 
   /* accents you can randomize via JS */
@@ -641,7 +641,7 @@ body:not(.app-on) .topnav { display: none; }
   --accent-fg: var(--ink);
 
   /* right-grid tiles */
-  --tile-outline: #f6f1e6;      /* outline color of right tiles */
+  --tile-outline: #f4efe4;      /* outline color of right tiles */
   --tile-size:    clamp(46px, 3.4vw, 58px);
   --tile-gap-x:   clamp(8px, 1.8vw, 10px);
   --tile-gap-y:   clamp(8px, 1.4vw, 10px);
@@ -892,6 +892,7 @@ body:not(.app-on) .topnav { display: none; }
 
 
 
+
 /* ===== DECO Duo (Visit + Car) ===== */
 #deco-duo { background: var(--bg); }
 
@@ -946,26 +947,73 @@ body:not(.app-on) .topnav { display: none; }
 }
 
 
-/* Tester */
-#testerInput{
-  width:100%;
-  font: inherit;
-  border:1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin: 8px 0 14px;
-  resize: vertical;
-  background:#fff;
+
+/* ===== Grain overlay (file-based, fast) ===== */
+:root{
+  --grain-opacity: .20;      /* stronger? try .28 to check */
+  --grain-size: 140px;       /* smaller = finer grain */
+  --grain-src: url("../assets/img/noise.svg");
 }
-#testerSample{ min-height: 2.5em; }
+/* ===== Site-wide grain (section overlay) ===== */
+:root{
+  --grain-src: url("../assets/img/noise.svg");
+  --grain-size: 140px;      /* smaller = finer */
+  --grain-opacity: .25;     /* tune .12 – .24 */
+}
 
-/* Footer */
-.footer{ text-align:center; color:#444; }
+/* make each big block its own blend stack */
+.section,
+.topnav{ position: relative; isolation: isolate; }
+
+/* grain sits on top of each block’s contents */
+.section::after,
+.topnav::after{
+  content:"";
+  position:absolute; inset:0; pointer-events:none;
+  background-image: var(--grain-src);
+  background-size: var(--grain-size) var(--grain-size);
+  opacity: var(--grain-opacity);
+  mix-blend-mode: multiply;
+  z-index: 1;                     /* below any z-indexed overlays inside */
+}
+
+/* hero already has a grain node; keep it for consistency */
+.landing-hero .grain-overlay{
+  position:absolute; inset:0; pointer-events:none; z-index:2;
+  background-image: var(--grain-src);
+  background-size: var(--grain-size) var(--grain-size);
+  opacity: var(--grain-opacity);
+  mix-blend-mode: multiply;
+}
+
+/* remove per-card grains so we don’t double-stack */
+.modularity-video::before,
+.modularity-video::after,
+.dm-card::before,
+.dm-card::after{
+  content: none !important;
+}
 
 
+/* -- fix: no grain/wash on the modularity figure -- */
+.modularity-video::before,
+.modularity-video::after{
+  content: none !important;      /* remove those overlays only here */
+}
 
+/* match page tone under/around the video */
+.modularity-video{ background: transparent; }
+.modularity-video > video{
+  background: var(--paper);      /* fills any letterbox edges */
+  display: block;
+}
 
-
-
+:root{ --wash-opacity: 0; }         /* try .04–.06 to unify clips */
+.section::before{
+  content:"";
+  position:absolute; inset:0; pointer-events:none;
+  background: rgba(244,239,228,var(--wash-opacity)); /* your --bg tone */
+  mix-blend-mode: multiply;
+}
 
 

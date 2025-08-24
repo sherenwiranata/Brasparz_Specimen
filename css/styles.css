@@ -877,7 +877,7 @@ body:not(.app-on) .topnav { display: none; }
 /* make the cards taller so the video/png aren’t tiny */
 #deco-mosaic .dm-grid{
   /* was: clamp(420px, 62vh, 640px) */
-  --panel-h: clamp(640px, 100vh, 2000px);
+  --panel-h: clamp(640px, 110vh, 2500px);
 }
 
 /* keep them generous when stacked on mobile, too */

@@ -945,33 +945,3 @@ body:not(.app-on) .topnav { display: none; }
 #deco-mosaic{
   padding-bottom: clamp(8px, 1.4vw, 16px);
 }
-
-:root{
-  --grain-src: url("../assets/img/noise.svg");
-  --grain-size: 140px;
-  --grain-opacity: .10;          /* a hair lighter */
-  --grain-blend: soft-light;     /* try: soft-light (neutral) or overlay */
-  /* --grain-blend: normal;      /* use this if you want zero blending, just opacity */
-}
-
-/* site-wide grain */
-.section::after,
-.topnav::after{
-  content:"";
-  position:absolute; inset:0; pointer-events:none;
-  background-image: var(--grain-src);
-  background-size: var(--grain-size) var(--grain-size);
-  opacity: var(--grain-opacity);
-  mix-blend-mode: var(--grain-blend);
-  z-index: 1;
-}
-
-/* hero grain */
-.landing-hero .grain-overlay{
-  position:absolute; inset:0; pointer-events:none; z-index:2;
-  background-image: var(--grain-src);
-  background-size: var(--grain-size) var(--grain-size);
-  opacity: var(--grain-opacity);
-  mix-blend-mode: var(--grain-blend);
-}
-

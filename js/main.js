@@ -618,3 +618,8 @@ const io = new IntersectionObserver((entries)=>{
   });
 }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
 document.querySelectorAll('main .section').forEach(sec => io.observe(sec));
+
+
+
+
+

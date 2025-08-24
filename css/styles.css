@@ -843,6 +843,56 @@ body:not(.app-on) .topnav { display: none; }
 
 
 
+/* ---- Deco City mosaic ---- */
+.section--deco-mosaic{ background: var(--paper, #f6f1e6); }
+
+/* === Mosaic layout tuned to the reference === */
+
+/* columns: 3fr | 2fr so the right column is tighter */
+.mosaic{
+  display:grid;
+  grid-template-columns: 3fr 2fr;           /* <- tighter right */
+  gap: 0;
+  align-items: stretch;
+   row-gap: 30px;     /* vertical spacing */
+  column-gap: 0px;
+}
+
+/* card shells */
+.card{
+  position:relative;
+  background:#222;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+/* aspect ratios (desktop) */
+.card--sq    { aspect-ratio: 1 / 1; }       /* top-left */
+.card--tall  { aspect-ratio: 2 / 3; }       /* top-right = taller/narrower */
+
+/* bottom row shorter than top row */
+.card--sqish { aspect-ratio: 6 / 5; }       /* “almost square” */
+.card--wide{ aspect-ratio: auto; }     /* clearly wide */
+
+/* media fit */
+.card > video,
+.card > img{
+  width:100%; height:100%;                     /* no cropping */
+  display:block; background:#2F2C2C;
+  object-fit: contain;
+  object-position: center;
+}
+
+.card{ min-width: 0; }
+
+/* mobile: stack; make bottom-right less extreme */
+@media (max-width:900px){
+  .mosaic{ grid-template-columns: 1fr; }
+  .card--wide{ aspect-ratio: 16 / 10; }
+  .card--sqish{ aspect-ratio: 1 / 1; }     /* feel free to keep 6/5 if you prefer */
+}
+
+
 
 
 /* Tester */

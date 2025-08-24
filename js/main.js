@@ -584,14 +584,16 @@ new ResizeObserver(setNavH).observe(nav);
 
 
 
-// weight slider
-const wght = document.getElementById('wght');
-const wOut = document.getElementById('wghtVal');
-if (wght && wOut){
-  const upd = () => { root.style.setProperty('--wght', wght.value); wOut.textContent = wght.value; };
-  wght.addEventListener('input', upd);
-  upd();
-}
+(() => {
+  const v = document.getElementById('decoVideo');
+  if (!v) return;
+  const setRate = () => { v.defaultPlaybackRate = 1.25; v.playbackRate = 1.25; };
+  if (v.readyState >= 1) setRate();
+  else v.addEventListener('loadedmetadata', setRate, { once: true });
+  v.play().catch(()=>{ /* muted should allow autoplay */ });
+})();
+
+
 
 // tester
 const tIn  = document.getElementById('testerInput');

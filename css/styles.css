@@ -299,7 +299,7 @@ body:not(.app-on) .topnav { display: none; }
 /* Reusable container: nav + all sections use this */
 .container,
 .topnav__inner{
-  width: min(var(--page-max), calc(100% - 2 * var(--page-pad)));
+    width: min(var(--page-max), calc(100% - 2 * var(--page-pad)));
   margin-inline: auto;
 }
 
@@ -317,12 +317,12 @@ body:not(.app-on) .topnav { display: none; }
 }
 
 
-.topnav__inner{
+.topnav__inner {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: space-between;             /* distributes links across width */
   gap: clamp(12px, 3vw, 40px);
-   padding-block: clamp(4px, 2vw, 15px);  /* much smaller */
+  padding-block: clamp(4px, 2vw, 15px);
 }
 
 .topnav a {

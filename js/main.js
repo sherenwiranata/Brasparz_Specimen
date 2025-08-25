@@ -387,7 +387,6 @@ new ResizeObserver(setNavH).observe(nav);
 
   /* ---------- Which groups use video instead of live glyph ---------- */
   const VIDEO_SOURCES = {
-  'Initial Uppercase': 'assets/video/InitialUppercase.mp4',
   'Initial Uppercase — Alternates & SS': 'assets/video/InitialUppercaseAlternates.mp4'
 };
 

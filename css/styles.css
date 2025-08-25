@@ -371,7 +371,7 @@ body:not(.app-on) .topnav { display: none; }
   font-size: clamp(8px, 1.6vw, 18px); 
   line-height: 1.45; 
   font-weight: 400; 
-  color: #191818;
+  color: #2F2C2C;
 }
 
 /* ↓ Responsive fallbacks: 2 cols, then 1 col */

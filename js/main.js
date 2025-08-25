@@ -616,6 +616,14 @@ new ResizeObserver(setNavH).observe(nav);
     v.play().catch(()=>{});
   })();
 
+const carVideo = document.getElementById("carVideo");
+
+carVideo.addEventListener("ended", () => {
+  setTimeout(() => {
+    carVideo.currentTime = 0;
+    carVideo.play();
+  }, 1000); // wait 1000ms (1 second) before replay
+});
 
 
 

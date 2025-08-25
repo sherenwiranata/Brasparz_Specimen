@@ -391,6 +391,7 @@ new ResizeObserver(setNavH).observe(nav);
   'Initial Uppercase — Alternates & SS': 'assets/video/InitialUppercaseAlternates.mp4'
 };
 
+
   /* ---------- Show glyph / Show video helpers ---------- */
   let activeFeat = 'normal';
   let msgTimer = null;
